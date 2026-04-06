@@ -19,8 +19,9 @@ const config: Config = {
         "brutal-lavender": "#B8A9FA",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+        heading: ["var(--font-heading)", "cursive"],
+        body: ["var(--font-body)", "sans-serif"],
+        numbers: ["var(--font-numbers)", "sans-serif"],
       },
     },
   },
