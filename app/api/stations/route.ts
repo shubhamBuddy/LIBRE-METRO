@@ -4,17 +4,43 @@ import { supabase } from "@/lib/supabase";
 /**
  * GET requests to retrieve all stations.
  */
+import fs from "fs";
+import path from "path";
+import { parse } from "csv-parse/sync";
+
 export async function GET(request: NextRequest) {
     try {
-        const { data, error } = await supabase
-            .from("stations")
-            .select("*")
-            .order("stop_id", { ascending: true });
+        const searchParams = request.nextUrl.searchParams;
+        const names = searchParams.get("names");
 
-        if (error) throw error;
+        if (!names) {
+            return NextResponse.json({ status: 400, message: "Missing 'names' parameter." }, { status: 400 });
+        }
 
-        return NextResponse.json({ status: 200, data });
+        const nameList = names.split(",").map(n => n.trim().toLowerCase());
+
+        // Read stops.txt directly
+        const filePath = path.join(process.cwd(), "public", "stops.txt");
+        const fileContent = fs.readFileSync(filePath, "utf-8");
+
+        const records = parse(fileContent, {
+            columns: true,
+            skip_empty_lines: true,
+            trim: true
+        });
+
+        // Filter records that match our nameList
+        const matchedStations = records.filter((r: any) => 
+            nameList.includes(r.stop_name.toLowerCase())
+        ).map((r: any) => ({
+            stop_name: r.stop_name,
+            stop_lat: parseFloat(r.stop_lat),
+            stop_lon: parseFloat(r.stop_lon)
+        }));
+
+        return NextResponse.json({ status: 200, data: matchedStations });
     } catch (error: any) {
+        console.error("Stations GET Error:", error);
         return NextResponse.json({ status: 500, message: error.message }, { status: 500 });
     }
 }

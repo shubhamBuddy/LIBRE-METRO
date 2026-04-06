@@ -16,6 +16,9 @@ To see all station names for a specific metro line, use the same api/dmrc endpoi
 Example for Blue Line:
 http://localhost:3001/api/dmrc?type=stations&line=blue
 
+## Interactive Route Visualization (Leaflet Map)
+Once a route is calculated, an interactive map will appear at the bottom of the results. It plots the exact geographic path of the metro stations and colors the route line based on the primary metro line used.
+
 ## Bulk Station Import (Supabase)
 To quickly populate your Supabase database from your stops.txt file, you can use the import-stops API. This will read the file and insert all station details into the database.
 

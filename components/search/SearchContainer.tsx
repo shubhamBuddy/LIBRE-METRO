@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowUpDown, Clock, MapPin, ArrowRight, TriangleAlert, Train } from "lucide-react";
+import RouteMap from "@/components/map/RouteMap";
 
 interface MetroRouteResponse {
   status: number;
@@ -163,7 +164,7 @@ export default function SearchContainer({
       {/* MAIN SEARCH CONTAINER */}
       <div className="bg-white border-2 border-black shadow-neo relative shrink-0">
         <div className="h-8 bg-black flex items-center px-3 justify-between">
-          <span className="font-heading text-[8px] text-white tracking-[0.1em]">
+          <span className="font-heading text-[8px] text-white tracking-widest">
             SYSTEM // CONTROL_PANEL_v<span className="font-numbers">1.0</span>
           </span>
           <div className="h-2 w-2 bg-brutal-yellow" />
@@ -221,7 +222,7 @@ export default function SearchContainer({
           <div className="flex justify-start pl-[30px] relative z-20">
             <button 
               onClick={handleSwap}
-              className="h-12 w-12 bg-brutal-blue border-2 border-black flex items-center justify-center shadow-neo hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer group"
+              className="h-12 w-12 bg-brutal-blue border-2 border-black flex items-center justify-center shadow-neo hover:-translate-x-px hover:-translate-y-px active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer group"
             >
               <ArrowUpDown className="h-5 w-5 text-black group-hover:scale-110 group-active:scale-90 transition-transform" />
             </button>
@@ -276,7 +277,7 @@ export default function SearchContainer({
             <button 
               onClick={handleSearch}
               disabled={loading}
-              className="h-16 w-full bg-brutal-yellow border-2 border-black flex items-center justify-center shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:opacity-75 disabled:cursor-not-allowed transition-all cursor-pointer group"
+              className="h-16 w-full bg-brutal-yellow border-2 border-black flex items-center justify-center shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none disabled:opacity-75 disabled:cursor-not-allowed transition-all cursor-pointer group"
             >
               <span className="font-heading text-[10px] tracking-widest text-black group-hover:scale-105 transition-transform">
                 {loading ? "SEARCHING..." : "FIND ROUTE"}
@@ -307,7 +308,7 @@ export default function SearchContainer({
           {/* ── HEADER CARD: Summary stats ── */}
           <div className="bg-white border-2 border-black shadow-neo relative overflow-hidden">
             <div className="h-8 bg-black flex items-center px-3 justify-between">
-              <span className="font-heading text-[8px] text-white tracking-[0.1em]">
+              <span className="font-heading text-[8px] text-white tracking-widest">
                 RESULT // ROUTE_CALCULATED
               </span>
               <div className="h-2 w-2 bg-brutal-green animate-pulse" />
@@ -371,7 +372,7 @@ export default function SearchContainer({
           {/* ── FULL ROUTE PATH CARD ── */}
           <div className="bg-white border-2 border-black shadow-neo relative overflow-hidden">
             <div className="h-8 bg-black flex items-center px-3 justify-between">
-              <span className="font-heading text-[8px] text-white tracking-[0.1em]">
+              <span className="font-heading text-[8px] text-white tracking-widest">
                 TRAJECTORY // STATION_PATH
               </span>
             </div>
@@ -487,6 +488,15 @@ export default function SearchContainer({
               </div>
             )}
           </div>
+          {/* ── GEOSPATIAL VISUALIZATION CARD ── */}
+          {routeResult.path && (
+            <RouteMap 
+              path={routeResult.path} 
+              line1={routeResult.line1}
+              line2={routeResult.line2}
+              interchange={routeResult.interchange}
+            />
+          )}
         </div>
       )}
     </div>
