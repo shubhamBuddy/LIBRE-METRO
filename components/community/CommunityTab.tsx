@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Users, X, LogIn, Zap, Loader2 } from "lucide-react";
+import { Plus, Users, X, LogIn, Zap } from "lucide-react";
 import CommunityCard, { CommunityRoute, ACCENT_COLORS_LIST } from "./CommunityCard";
 import CommunityDetailModal from "./CommunityModal";
 import AuthModal from "@/components/auth/AuthModal";
@@ -11,7 +11,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── DB Row → CommunityRoute mapper ──────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapDbRow(row: any, index: number): CommunityRoute {
+function mapDbRow(row: any, index: number, userId: string | undefined): CommunityRoute {
   const routeArr: string[] = Array.isArray(row.full_route) ? row.full_route : [];
   const routeStr =
     routeArr.length > 0
@@ -22,6 +22,9 @@ function mapDbRow(row: any, index: number): CommunityRoute {
       ? row.hashtags[0]
       : "Less crowded";
 
+  // Use current_user_vote if provided by the view
+  const userVote = row.current_user_vote as "up" | "down" | null;
+
   return {
     id:          row.id as string,
     title:       `${row.origin} → ${row.destination}`,
@@ -29,7 +32,7 @@ function mapDbRow(row: any, index: number): CommunityRoute {
     tag,
     tip:         row.tip ?? "",
     votes:       row.votes ?? 0,
-    userVote:    null,
+    userVote:    userVote,
     accentColor: ACCENT_COLORS_LIST[index % ACCENT_COLORS_LIST.length],
   };
 }
@@ -102,23 +105,27 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
     async function fetchSuggestions() {
       setLoading(true);
       setFetchError(null);
-      const { data, error } = await supabase
-        .from("suggestions")
-        .select("*")
-        .order("votes", { ascending: false });
 
-      if (error) {
+      try {
+        // Fetch from our new database view which automatically includes the current user's vote
+        const { data, error } = await supabase
+          .from("suggestions_with_user_vote")
+          .select("*")
+          .order("votes", { ascending: false });
+
+        if (error) throw error;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setRoutes((data ?? []).map((row: any, i: number) => mapDbRow(row, i, user?.id)));
+      } catch (error) {
+        console.error("fetchSuggestions error:", error);
         setFetchError("Failed to load community routes.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setRoutes((data ?? []).map((row: any, i: number) => mapDbRow(row, i)));
-      setLoading(false);
     }
     fetchSuggestions();
-  }, []);
+  }, [user]);
 
   // ── Mount + ESC ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -142,12 +149,18 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   };
 
   const handleVote = async (id: string, direction: "up" | "down") => {
+    if (!user) {
+      setShowLoginRequired(true);
+      return;
+    }
+
     const route = routes.find((r) => r.id === id);
     if (!route) return;
 
     let newVotes = route.votes;
     let newUserVote: "up" | "down" | null = direction;
 
+    // 1. Calculate optimistic local state
     if (route.userVote === direction) {
       newVotes = direction === "up" ? route.votes - 1 : route.votes + 1;
       newUserVote = null;
@@ -163,35 +176,46 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       )
     );
 
-    const { error } = await supabase
-      .from("suggestions")
-      .update({ votes: newVotes })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Failed to update votes in Supabase:", error);
-      // Revert optimism if needed (optional)
+    // 2. Persist to DB - The suggestions table 'votes' count is handled by a DB trigger on suggestion_votes
+    try {
+      if (newUserVote === null) {
+        // Remove vote
+        await supabase
+          .from("suggestion_votes")
+          .delete()
+          .eq("suggestion_id", id)
+          .eq("user_id", user.id);
+      } else {
+        // Upsert vote (insert or update)
+        await supabase
+          .from("suggestion_votes")
+          .upsert({
+            suggestion_id: id,
+            user_id: user.id,
+            vote_type: newUserVote
+          }, { onConflict: "user_id, suggestion_id" });
+      }
+    } catch (err) {
+      console.error("Critical error updating vote:", err);
     }
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── BACKDROP ──────────────────────────────────────────────────────── */}
       <div
         className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto py-10 px-4 pb-32 ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
       >
-        {/* ── PANEL ──────────────────────────────────────────────────────── */}
         <div
           onClick={(e) => e.stopPropagation()}
           className={`w-full max-w-[600px] mx-auto transition-transform duration-300 ${
             isVisible ? "scale-100" : "scale-95"
           }`}
         >
-          {/* HEADER ─────────────────────────────────────────────────────── */}
+          {/* HEADER */}
           <div className="bg-black border-[3px] border-black mb-0 flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-brutal-yellow border-2 border-white">
@@ -215,7 +239,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             </button>
           </div>
 
-          {/* KICKER ─────────────────────────────────────────────────────── */}
+          {/* KICKER */}
           <div className="bg-brutal-yellow border-[3px] border-t-0 border-black px-5 py-2 flex items-center gap-2">
             <Zap className="h-3 w-3 text-black shrink-0" strokeWidth={3} />
             <p className="font-heading text-[8px] text-black uppercase tracking-[0.25em] font-black">
@@ -236,7 +260,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             )}
           </div>
 
-          {/* ── SINGLE-COLUMN CARD LIST ─────────────────────────────────── */}
+          {/* SINGLE-COLUMN CARD LIST */}
           <div className="mt-4 flex flex-col gap-4">
             {loading ? (
               <>
@@ -264,10 +288,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
               </div>
             ) : (
               routes.map((route, i) => (
-                <div
-                  key={route.id}
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
+                <div key={route.id} style={{ animationDelay: `${i * 60}ms` }}>
                   <CommunityCard
                     data={route}
                     onVote={handleVote}
@@ -278,7 +299,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             )}
           </div>
 
-          {/* CTA FOOTER ─────────────────────────────────────────────────── */}
+          {/* CTA FOOTER */}
           {!loading && (
             <div className="mt-4 border-[3px] border-black border-dashed bg-white/60 p-5 flex items-center justify-between gap-4">
               <div>
@@ -301,7 +322,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       </div>
 
-      {/* ── FLOATING ADD BTN ─────────────────────────────────────────────── */}
+      {/* FLOATING ADD BTN */}
       <button
         onClick={handleAddClick}
         className="fixed bottom-24 right-6 z-60 h-14 w-14 bg-brutal-yellow border-[3px] border-black shadow-neo flex items-center justify-center hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer group"
@@ -310,7 +331,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         <Plus className="h-7 w-7 text-black group-hover:rotate-90 transition-transform duration-300" strokeWidth={3} />
       </button>
 
-      {/* ── DETAIL MODAL ─────────────────────────────────────────────────── */}
+      {/* DETAIL MODAL */}
       {selectedRoute && (
         <CommunityDetailModal
           route={selectedRoute}
@@ -318,7 +339,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         />
       )}
 
-      {/* ── LOGIN REQUIRED ────────────────────────────────────────────────── */}
+      {/* LOGIN REQUIRED */}
       {showLoginRequired && (
         <div
           className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 px-4"
@@ -358,7 +379,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       )}
 
-      {/* ── COMING SOON ──────────────────────────────────────────────────── */}
+      {/* COMING SOON */}
       {showComingSoon && (
         <div
           className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 px-4"
@@ -389,7 +410,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       )}
 
-      {/* ── AUTH MODAL ───────────────────────────────────────────────────── */}
+      {/* AUTH MODAL */}
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </>
   );
