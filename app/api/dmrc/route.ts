@@ -17,6 +17,12 @@ export async function GET(request: NextRequest) {
       }
 
       const result = await metroApi.getRoute(from, to);
+      
+      // Map API status codes to user-friendly error messages
+      if (result.status !== 200) {
+        result.message = metroApi.getErrorByCode(result.status);
+      }
+      
       return NextResponse.json(result);
     } 
     
@@ -30,7 +36,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(result);
     }
 
-    return NextResponse.json({ status: 400, message: "Invalid or missing 'type' parameter. Use 'route' or 'stations'." }, { status: 400 });
+    if (type === "all-stations") {
+      const stations = await metroApi.getAllStations();
+      return NextResponse.json({ status: 200, stations });
+    }
+
+    return NextResponse.json({ status: 400, message: "Invalid or missing 'type' parameter. Use 'route', 'stations', or 'all-stations'." }, { status: 400 });
 
   } catch (error) {
     console.error("DMRC Proxy API Error:", error);
