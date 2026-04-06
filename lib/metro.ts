@@ -48,7 +48,7 @@ export interface MetroStationListResponse {
 export class MetroAPI {
   private baseUrl: string;
 
-  constructor(baseUrl: string = process.env.API || process.env.NEXT_PUBLIC_METRO_API_URL || "http://localhost:3000") {
+  constructor(baseUrl: string = process.env.NEXT_PUBLIC_METRO_API_URL || process.env.API || "http://localhost:3000") {
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
   }
 
