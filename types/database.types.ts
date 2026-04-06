@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      suggestions: {
+        Row: {
+          created_at: string | null
+          destination: string
+          downvotes: number | null
+          full_route: Json
+          hashtags: string[] | null
+          id: string
+          origin: string
+          upvotes: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          destination: string
+          downvotes?: number | null
+          full_route: Json
+          hashtags?: string[] | null
+          id?: string
+          origin: string
+          upvotes?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          destination?: string
+          downvotes?: number | null
+          full_route?: Json
+          hashtags?: string[] | null
+          id?: string
+          origin?: string
+          upvotes?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
