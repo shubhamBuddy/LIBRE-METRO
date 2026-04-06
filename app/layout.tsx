@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: "A clean, structured, and modern system-like interface.",
 };
 
+import PersonalizeSystem from "@/components/personalization/PersonalizeSystem";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,14 +32,18 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${mono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full bg-background text-foreground font-sans selection:bg-accent/30">
+      <body className="min-h-full bg-background text-foreground font-sans selection:bg-accent/30 overflow-x-hidden">
         <main className="mx-auto w-full max-w-[540px] px-4 py-8 md:px-6">
           <div className="flex flex-col gap-12">
             {children}
           </div>
         </main>
+        
+        {/* Personalization system handled via browser storage logic */}
+        <PersonalizeSystem />
       </body>
     </html>
   );
 }
+
 
