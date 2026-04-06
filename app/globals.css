@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Canonical Neubrutalist Palette */
+  --color-background: #FFFDF5; /* Off-White */
+  --color-foreground: #000000; /* Black */
+  
+  --color-brutal-yellow: #FFD23F;
+  --color-brutal-pink: #FF6B6B;
+  --color-brutal-blue: #74B9FF;
+  --color-brutal-green: #88D498;
+  --color-brutal-orange: #FFA552;
+  --color-brutal-lavender: #B8A9FA;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Neo-Brutalist Sharpness */
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* Hard Shadows - Black as per reference */
+  --shadow-neo: 4px 4px 0px 0px #000000;
+  --shadow-neo-lg: 8px 8px 0px 0px #000000;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  *, ::after, ::before {
+    @apply border-black;
+  }
 
-@media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-brutal-yellow selection:text-black;
+    margin: 0;
+    padding: 0;
+    
+    /* Clean Neubrutalist Background with boosted textured grid */
+    background-color: var(--color-background);
+    background-image: 
+      radial-gradient(circle, rgba(0, 0, 0, 0.12) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+    background-attachment: fixed;
+  }
+
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-black tracking-tighter uppercase;
+  }
+
+  label, .system-text {
+    @apply font-mono text-xs tracking-[0.2em] uppercase font-bold text-foreground opacity-60;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .card {
+    @apply bg-white border-2 border-black shadow-neo p-6 transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+  }
+
+  .card-yellow { @apply bg-brutal-yellow border-2 border-black shadow-neo p-6 font-bold; }
+  .card-pink { @apply bg-brutal-pink border-2 border-black shadow-neo p-6 font-bold; }
+  .card-blue { @apply bg-brutal-blue border-2 border-black shadow-neo p-6 font-bold; }
+  .card-green { @apply bg-brutal-green border-2 border-black shadow-neo p-6 font-bold; }
+
+  .btn-brutal {
+    @apply inline-block bg-brutal-yellow text-black border-2 border-black px-6 py-2 font-black uppercase tracking-widest shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer;
+  }
 }
+
+
+
+
+
+
