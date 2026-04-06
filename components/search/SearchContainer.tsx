@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowUpDown, Clock, MapPin, ArrowRight, TriangleAlert, Train } from "lucide-react";
-import RouteMap from "@/components/map/RouteMap";
 import FareBreakdown from "./FareBreakdown";
 
 interface MetroRouteResponse {
@@ -35,6 +34,7 @@ function getLineColor(lines: string[] | undefined) {
   if (!lines || lines.length === 0) return LINE_COLORS.blue;
   return LINE_COLORS[lines[0]] || LINE_COLORS.blue;
 }
+
 
 export default function SearchContainer({ 
   from, 
@@ -492,15 +492,7 @@ export default function SearchContainer({
               </div>
             )}
           </div>
-          {/* ── GEOSPATIAL VISUALIZATION CARD ── */}
-          {routeResult.path && (
-            <RouteMap 
-              path={routeResult.path} 
-              line1={routeResult.line1}
-              line2={routeResult.line2}
-              interchange={routeResult.interchange}
-            />
-          )}
+
         </div>
       )}
     </div>
