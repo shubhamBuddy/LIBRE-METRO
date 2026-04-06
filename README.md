@@ -19,7 +19,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_METRO_API_URL=https://your-dmrc-api-host.com
 ```
 
-### 3. Installation
+### 3. Installation 
 ```bash
 npm install
 npm run dev
