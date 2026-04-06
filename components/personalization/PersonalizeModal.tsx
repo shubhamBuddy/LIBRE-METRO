@@ -10,7 +10,7 @@ import {
   MapPin,
   Check,
 } from "lucide-react";
-import Image from "next/image";
+
 
 /* ─────────────────────────── TYPES ─────────────────────────── */
 type UserType = "student" | "tourist";
@@ -38,32 +38,32 @@ const TOURIST_PLACES = [
   {
     name:  "India Gate",
     metro: "Central Secretariat",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/India_Gate_in_New_Delhi_03-2016.jpg/640px-India_Gate_in_New_Delhi_03-2016.jpg",
+    image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=640&auto=format&fit=crop",
   },
   {
     name:  "Qutub Minar",
     metro: "Qutab Minar",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Qutb_Minar_mausoleum.jpg/640px-Qutb_Minar_mausoleum.jpg",
+    image: "https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=640&auto=format&fit=crop",
   },
   {
     name:  "Red Fort",
     metro: "Lal Quila",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Red_Fort_in_Delhi_03-2016_img3.jpg/640px-Red_Fort_in_Delhi_03-2016_img3.jpg",
+    image: "https://images.unsplash.com/photo-1598324789736-4861f89564a0?q=80&w=640&auto=format&fit=crop",
   },
   {
     name:  "Lotus Temple",
     metro: "Okhla NSIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Lotus_Temple_in_New_Delhi_03-2016_img3.jpg/640px-Lotus_Temple_in_New_Delhi_03-2016_img3.jpg",
+    image: "https://images.unsplash.com/photo-1600100397608-f010f41cb8ea?q=80&w=640&auto=format&fit=crop",
   },
   {
     name:  "Humayun's Tomb",
     metro: "J.L.N. Stadium",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Humayun%27s_Tomb_-_Delhi_%283%29.jpg/640px-Humayun%27s_Tomb_-_Delhi_%283%29.jpg",
+    image: "https://images.unsplash.com/photo-1574182464526-724bc2499f57?q=80&w=640&auto=format&fit=crop",
   },
   {
     name:  "Chandni Chowk",
     metro: "Chandni Chowk",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Chandni_Chowk_2014-05-11.jpg/640px-Chandni_Chowk_2014-05-11.jpg",
+    image: "https://images.unsplash.com/photo-1626248924040-cfcba6f83ec0?q=80&w=640&auto=format&fit=crop",
   },
 ];
 
@@ -384,12 +384,11 @@ export default function PersonalizeModal({ onClose, onSave }: PersonalizeModalPr
                 >
                   {/* Photo */}
                   <div className="relative h-24 w-full overflow-hidden border-b-[3px] border-black">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={place.image}
                       alt={place.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      unoptimized
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   {/* Info */}
