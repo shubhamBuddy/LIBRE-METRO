@@ -5,7 +5,7 @@ import SearchContainer from "@/components/search/SearchContainer";
 import LocationSystem from "@/components/location/LocationSystem";
 import BottomDock, { NavItem } from "@/components/navigation/BottomDock";
 import PersonalizeModal from "@/components/personalization/PersonalizeModal";
-import CommunityModal from "@/components/community/CommunityModal";
+import CommunityTab from "@/components/community/CommunityTab";
 
 export default function Home() {
   const [fromStation, setFromStation] = useState("");
@@ -14,7 +14,7 @@ export default function Home() {
   // Dock & Modal States
   const [activeTab, setActiveTab] = useState<NavItem>("home");
   const [showPersonalizeModal, setShowPersonalizeModal] = useState(false);
-  const [showCommunityModal, setShowCommunityModal] = useState(false);
+  const [showCommunity, setShowCommunity] = useState(false);
   
   const [mounted, setMounted] = useState(false);
 
@@ -36,12 +36,12 @@ export default function Home() {
     
     if (tab === "home") {
       setShowPersonalizeModal(false);
-      setShowCommunityModal(false);
+      setShowCommunity(false);
     } else if (tab === "community") {
       setShowPersonalizeModal(false);
-      setShowCommunityModal(true);
+      setShowCommunity(true);
     } else if (tab === "personalize") {
-      setShowCommunityModal(false);
+      setShowCommunity(false);
       setShowPersonalizeModal(true);
     }
   };
@@ -56,7 +56,7 @@ export default function Home() {
     closePersonalizeModal();
   };
   
-  const closeCommunityModal = () => {
+  const closeCommunity = () => {
     handleTabChange("home");
   };
 
@@ -90,17 +90,12 @@ export default function Home() {
         />
       )}
       
-      {mounted && showCommunityModal && (
-        <CommunityModal 
-          onClose={closeCommunityModal} 
+      {/* COMMUNITY TAB — Full-screen overlay */}
+      {mounted && showCommunity && (
+        <CommunityTab 
+          onClose={closeCommunity} 
         />
       )}
     </div>
   );
 }
-
-
-
-
-
-

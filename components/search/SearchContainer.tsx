@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowUpDown, Clock, MapPin, ArrowRight, TriangleAlert, Train } from "lucide-react";
+<<<<<<< HEAD
 import RouteMap from "@/components/map/RouteMap";
+=======
+import FareBreakdown from "./FareBreakdown";
+>>>>>>> bf808330c264e2a404ce2b433b6be57661fac5ea
 
 interface MetroRouteResponse {
   status: number;
@@ -304,6 +308,9 @@ export default function SearchContainer({
       {/* ═══════════════════════════════════════════════════ */}
       {routeResult && !loading && (
         <div ref={resultRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-4">
+
+          {/* ── FARE BREAKDOWN CARD ── */}
+          <FareBreakdown stopsCount={routeResult.path?.length || 1} />
 
           {/* ── HEADER CARD: Summary stats ── */}
           <div className="bg-white border-2 border-black shadow-neo relative overflow-hidden">
