@@ -5,6 +5,7 @@ import { Plus, Users, X, LogIn, Zap } from "lucide-react";
 import CommunityCard, { CommunityRoute, ACCENT_COLORS_LIST } from "./CommunityCard";
 import CommunityDetailModal from "./CommunityModal";
 import AuthModal from "@/components/auth/AuthModal";
+import AddRouteModal from "./AddRouteModal";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -79,7 +80,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   const [loading, setLoading]             = useState(true);
   const [fetchError, setFetchError]       = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<CommunityRoute | null>(null);
-  const [showComingSoon, setShowComingSoon]     = useState(false);
+  const [showAddRoute, setShowAddRoute]         = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
   const [showAuthModal, setShowAuthModal]         = useState(false);
   const [isVisible, setIsVisible]                 = useState(false);
@@ -105,7 +106,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
     async function fetchSuggestions() {
       setLoading(true);
       setFetchError(null);
-
       try {
         // Fetch from our new database view which automatically includes the current user's vote
         const { data, error } = await supabase
@@ -135,17 +135,31 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       if (showAuthModal)     { setShowAuthModal(false);     return; }
       if (showLoginRequired) { setShowLoginRequired(false); return; }
       if (selectedRoute)     { setSelectedRoute(null);      return; }
-      if (showComingSoon)    { setShowComingSoon(false);     return; }
+      if (showAddRoute)      { setShowAddRoute(false);      return; }
       onClose();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, selectedRoute, showComingSoon, showLoginRequired, showAuthModal]);
+  }, [onClose, selectedRoute, showAddRoute, showLoginRequired, showAuthModal]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleAddClick = () => {
     if (!user) setShowLoginRequired(true);
-    else       setShowComingSoon(true);
+    else       setShowAddRoute(true);
+  };
+
+  const handleRouteSubmitted = (newRoute: { id: string; title: string; route: string[]; votes: number; tag: string; tip: string }) => {
+    const mapped: CommunityRoute = {
+      id: newRoute.id,
+      title: newRoute.title,
+      route: newRoute.route.join(" → "),
+      tag: newRoute.tag,
+      tip: newRoute.tip,
+      votes: 0,
+      userVote: null,
+      accentColor: ACCENT_COLORS_LIST[0],
+    };
+    setRoutes(prev => [mapped, ...prev]);
   };
 
   const handleVote = async (id: string, direction: "up" | "down") => {
@@ -322,15 +336,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       </div>
 
-      {/* FLOATING ADD BTN */}
-      <button
-        onClick={handleAddClick}
-        className="fixed bottom-24 right-6 z-60 h-14 w-14 bg-brutal-yellow border-[3px] border-black shadow-neo flex items-center justify-center hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer group"
-        aria-label="Suggest a route"
-      >
-        <Plus className="h-7 w-7 text-black group-hover:rotate-90 transition-transform duration-300" strokeWidth={3} />
-      </button>
-
       {/* DETAIL MODAL */}
       {selectedRoute && (
         <CommunityDetailModal
@@ -379,35 +384,13 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       )}
 
-      {/* COMING SOON */}
-      {showComingSoon && (
-        <div
-          className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 px-4"
-          onClick={() => setShowComingSoon(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-background border-[3px] border-black shadow-neo-lg p-10 max-w-sm w-full text-center space-y-6"
-          >
-            <div className="h-16 w-16 bg-brutal-green border-2 border-black shadow-neo mx-auto flex items-center justify-center">
-              <Plus className="h-8 w-8 text-black" strokeWidth={3} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-black font-heading text-sm uppercase tracking-widest font-black">
-                COMING_SOON
-              </h3>
-              <p className="text-black/60 text-[9px] font-heading font-bold uppercase tracking-wider leading-relaxed">
-                THE SQUAD IS STILL CALIBRATING<br />THIS FEATURE. CHECK BACK SOON.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowComingSoon(false)}
-              className="w-full bg-brutal-yellow font-heading font-black text-black border-[3px] border-black py-4 shadow-neo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer uppercase tracking-[0.2em] text-xs"
-            >
-              COGNIZED
-            </button>
-          </div>
-        </div>
+      {/* ── ADD ROUTE MODAL ───────────────────────────────────────────────── */}
+      {showAddRoute && (
+        <AddRouteModal
+          onClose={() => setShowAddRoute(false)}
+          onSubmit={handleRouteSubmitted}
+          user={user}
+        />
       )}
 
       {/* AUTH MODAL */}
