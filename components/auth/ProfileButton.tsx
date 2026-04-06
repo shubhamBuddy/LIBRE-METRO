@@ -22,8 +22,21 @@ export default function ProfileButton() {
     // Listen for auth state changes (e.g. after OAuth redirect)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) setShowModal(false);
+      if (session?.user) {
+        setShowModal(false);
+        // Clear the hash from URL after successful sign-in
+        if (window.location.hash) {
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
+      }
     });
+
+    // Specific check for hash tokens if session is not yet established
+    if (window.location.hash.includes("access_token")) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setUser(session.user);
+      });
+    }
 
     return () => listener.subscription.unsubscribe();
   }, []);

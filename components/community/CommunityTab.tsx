@@ -1,66 +1,88 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Users, X, LogIn } from "lucide-react";
-import CommunityCard, { CommunityRoute } from "./CommunityCard";
+import { Plus, Users, X, LogIn, Zap, Loader2 } from "lucide-react";
+import CommunityCard, { CommunityRoute, ACCENT_COLORS_LIST } from "./CommunityCard";
 import CommunityDetailModal from "./CommunityModal";
 import AuthModal from "@/components/auth/AuthModal";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
-const STATIC_ROUTES: CommunityRoute[] = [
-  {
-    id: 1,
-    title: "Tughlaqabad → Vishwavidyalaya",
-    route: "Tughlaqabad → Kashmere Gate → Vishwavidyalaya",
-    tag: "Less crowded",
-    tip: "Less walking and better chance of getting a seat during peak hours.",
-    votes: 12,
-    userVote: null,
-  },
-  {
-    id: 2,
-    title: "Rajiv Chowk → Hauz Khas",
-    route: "Rajiv Chowk → Hauz Khas",
-    tag: "Fastest",
-    tip: "Direct Yellow Line — no interchange needed. Fastest during off-peak.",
-    votes: 8,
-    userVote: null,
-  },
-  {
-    id: 3,
-    title: "Noida Sec 18 → Rajiv Chowk",
-    route: "Noida Sec 18 → Rajiv Chowk",
-    tag: "No interchange",
-    tip: "Direct Blue Line. Board from the first coach for quick exit at Rajiv Chowk.",
-    votes: 10,
-    userVote: null,
-  },
-  {
-    id: 4,
-    title: "Huda City Centre → Kashmere Gate",
-    route: "Huda City Centre → Rajiv Chowk → Kashmere Gate",
-    tag: "Less crowded",
-    tip: "Yellow Line is less packed after Qutub Minar station. Prefer morning hours.",
-    votes: 6,
-    userVote: null,
-  },
-];
+// ─── DB Row → CommunityRoute mapper ──────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapDbRow(row: any, index: number): CommunityRoute {
+  const routeArr: string[] = Array.isArray(row.full_route) ? row.full_route : [];
+  const routeStr =
+    routeArr.length > 0
+      ? routeArr.join(" → ")
+      : `${row.origin} → ${row.destination}`;
+  const tag =
+    Array.isArray(row.hashtags) && row.hashtags.length > 0
+      ? row.hashtags[0]
+      : "Less crowded";
+
+  return {
+    id:          row.id as string,
+    title:       `${row.origin} → ${row.destination}`,
+    route:       routeStr,
+    tag,
+    tip:         row.tip ?? "",
+    votes:       row.votes ?? 0,
+    userVote:    null,
+    accentColor: ACCENT_COLORS_LIST[index % ACCENT_COLORS_LIST.length],
+  };
+}
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface CommunityTabProps {
   onClose: () => void;
 }
 
-export default function CommunityTab({ onClose }: CommunityTabProps) {
-  const [routes, setRoutes] = useState<CommunityRoute[]>(STATIC_ROUTES);
-  const [selectedRoute, setSelectedRoute] = useState<CommunityRoute | null>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
-  const [showLoginRequired, setShowLoginRequired] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+// ─── Skeleton card ────────────────────────────────────────────────────────────
 
-  // ── Auth state ──
+function SkeletonCard() {
+  return (
+    <div className="w-full bg-white border-[3px] border-black/20 animate-pulse">
+      <div className="flex items-center gap-3 px-4 py-3 border-b-[3px] border-black/10">
+        <div className="h-9 w-9 bg-black/10 shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-2 bg-black/10 w-32 rounded" />
+          <div className="h-2 bg-black/10 w-20 rounded" />
+        </div>
+        <div className="h-5 w-20 bg-black/10 rounded" />
+      </div>
+      <div className="px-4 py-3 border-b-[3px] border-black/10 space-y-2">
+        <div className="h-3 bg-black/10 w-3/4 rounded" />
+        <div className="h-2 bg-black/10 w-full rounded" />
+      </div>
+      <div className="px-4 py-2 flex items-center justify-between">
+        <div className="h-5 bg-black/10 w-40 rounded" />
+        <div className="flex gap-2">
+          <div className="h-8 w-8 bg-black/10 rounded" />
+          <div className="h-8 w-8 bg-black/10 rounded" />
+          <div className="h-8 w-8 bg-black/10 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function CommunityTab({ onClose }: CommunityTabProps) {
+  const [routes, setRoutes]               = useState<CommunityRoute[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [fetchError, setFetchError]       = useState<string | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<CommunityRoute | null>(null);
+  const [showComingSoon, setShowComingSoon]     = useState(false);
+  const [showLoginRequired, setShowLoginRequired] = useState(false);
+  const [showAuthModal, setShowAuthModal]         = useState(false);
+  const [isVisible, setIsVisible]                 = useState(false);
+  const [user, setUser]                           = useState<User | null>(null);
+
+  // ── Auth ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -75,135 +97,197 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // ── Mount animation + ESC key ──
+  // ── Fetch suggestions from Supabase ────────────────────────────────────────
+  useEffect(() => {
+    async function fetchSuggestions() {
+      setLoading(true);
+      setFetchError(null);
+      const { data, error } = await supabase
+        .from("suggestions")
+        .select("*")
+        .order("votes", { ascending: false });
+
+      if (error) {
+        setFetchError("Failed to load community routes.");
+        setLoading(false);
+        return;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setRoutes((data ?? []).map((row: any, i: number) => mapDbRow(row, i)));
+      setLoading(false);
+    }
+    fetchSuggestions();
+  }, []);
+
+  // ── Mount + ESC ────────────────────────────────────────────────────────────
   useEffect(() => {
     requestAnimationFrame(() => setIsVisible(true));
-
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (showAuthModal) { setShowAuthModal(false); return; }
-        if (showLoginRequired) { setShowLoginRequired(false); return; }
-        if (selectedRoute) { setSelectedRoute(null); return; }
-        if (showComingSoon) { setShowComingSoon(false); return; }
-        onClose();
-      }
+      if (e.key !== "Escape") return;
+      if (showAuthModal)     { setShowAuthModal(false);     return; }
+      if (showLoginRequired) { setShowLoginRequired(false); return; }
+      if (selectedRoute)     { setSelectedRoute(null);      return; }
+      if (showComingSoon)    { setShowComingSoon(false);     return; }
+      onClose();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose, selectedRoute, showComingSoon, showLoginRequired, showAuthModal]);
 
-  // ── + button handler ──
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleAddClick = () => {
-    if (!user) {
-      setShowLoginRequired(true);
-    } else {
-      setShowComingSoon(true);
-    }
+    if (!user) setShowLoginRequired(true);
+    else       setShowComingSoon(true);
   };
 
-  // ── Voting ──
-  const handleVote = (id: number, direction: "up" | "down") => {
+  const handleVote = (id: string, direction: "up" | "down") => {
     setRoutes((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
-
-        let newVotes = r.votes;
+        let newVotes   = r.votes;
         let newUserVote: "up" | "down" | null = direction;
-
         if (r.userVote === direction) {
-          newVotes = direction === "up" ? r.votes - 1 : r.votes + 1;
+          newVotes    = direction === "up" ? r.votes - 1 : r.votes + 1;
           newUserVote = null;
         } else if (r.userVote === null) {
           newVotes = direction === "up" ? r.votes + 1 : r.votes - 1;
         } else {
           newVotes = direction === "up" ? r.votes + 2 : r.votes - 2;
         }
-
         return { ...r, votes: newVotes, userVote: newUserVote };
       })
     );
   };
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── DARK OVERLAY BACKDROP ── */}
+      {/* ── BACKDROP ──────────────────────────────────────────────────────── */}
       <div
-        className={`fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto py-12 px-4 pb-32 ${
+        className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto py-10 px-4 pb-32 ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
       >
-        {/* ── MODAL CONTAINER ── */}
+        {/* ── PANEL ──────────────────────────────────────────────────────── */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`w-full max-w-[500px] mx-auto bg-background border-[3px] border-black shadow-neo-lg overflow-hidden transition-transform duration-300 ${
+          className={`w-full max-w-[600px] mx-auto transition-transform duration-300 ${
             isVisible ? "scale-100" : "scale-95"
           }`}
         >
-          {/* HEADER */}
-          <div className="bg-black py-4 px-6 flex items-center justify-between">
+          {/* HEADER ─────────────────────────────────────────────────────── */}
+          <div className="bg-black border-[3px] border-black mb-0 flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-brutal-yellow border-2 border-white">
-                <Users className="h-5 w-5 text-black" strokeWidth={3} />
+                <Users className="h-4 w-4 text-black" strokeWidth={3} />
               </div>
-              <div className="flex flex-col">
-                <span className="font-heading text-xs text-white tracking-[0.2em] uppercase font-black">
+              <div>
+                <p className="font-heading text-[10px] text-white tracking-[0.25em] uppercase font-black">
                   COMMUNITY_HUB
-                </span>
-                <span className="text-[8px] text-white/50 font-heading uppercase tracking-widest font-bold">
-                  LOCAL_ROOTS // DEL_METRO
-                </span>
+                </p>
+                <p className="font-heading text-[7px] text-white/40 uppercase tracking-widest font-bold">
+                  STREET_KNOWLEDGE // DEL_METRO
+                </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="h-10 w-10 flex items-center justify-center bg-brutal-pink border-2 border-black shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] hover:translate-x-px hover:translate-y-px hover:shadow-none transition-all cursor-pointer"
+              className="h-9 w-9 flex items-center justify-center bg-brutal-pink border-2 border-white hover:brightness-95 active:scale-95 transition-all cursor-pointer"
               aria-label="Close"
             >
-              <X className="h-6 w-6 text-black" strokeWidth={3} />
+              <X className="h-5 w-5 text-black" strokeWidth={3} />
             </button>
           </div>
 
-          {/* CONTENT */}
-          <div className="p-6">
-            <div className="mb-6 flex items-center gap-4">
-              <div className="h-0.5 flex-1 bg-black opacity-10" />
-              <span className="font-heading text-[9px] text-black/40 uppercase tracking-[0.3em] font-black">
-                STREET_KNOWLEDGE
-              </span>
-              <div className="h-0.5 flex-1 bg-black opacity-10" />
-            </div>
-
-            <div className="flex flex-col gap-5">
-              {routes.map((route) => (
-                <CommunityCard
-                  key={route.id}
-                  data={route}
-                  onVote={handleVote}
-                  onClick={() => setSelectedRoute(route)}
-                />
-              ))}
-            </div>
-
-            <div className="mt-8 p-4 bg-brutal-blue/10 border-2 border-black border-dashed flex items-center justify-center text-center">
-              <p className="text-[9px] font-heading text-black/60 uppercase tracking-widest leading-relaxed font-bold">
-                TAP ANY CARD TO REVEAL<br />THE SECRET PATHWAY
-              </p>
-            </div>
+          {/* KICKER ─────────────────────────────────────────────────────── */}
+          <div className="bg-brutal-yellow border-[3px] border-t-0 border-black px-5 py-2 flex items-center gap-2">
+            <Zap className="h-3 w-3 text-black shrink-0" strokeWidth={3} />
+            <p className="font-heading text-[8px] text-black uppercase tracking-[0.25em] font-black">
+              LOVED BY THE COMMUNITY
+            </p>
+            <div className="flex-1 h-[2px] bg-black/20 ml-1" />
+            <span className="font-numbers text-[9px] font-black text-black/60">
+              {loading ? "…" : `${routes.length} TIPS`}
+            </span>
           </div>
+
+          {/* ── SINGLE-COLUMN CARD LIST ─────────────────────────────────── */}
+          <div className="mt-4 flex flex-col gap-4">
+            {loading ? (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            ) : fetchError ? (
+              <div className="border-[3px] border-black bg-brutal-pink p-6 text-center">
+                <p className="font-heading text-[10px] font-black uppercase tracking-widest text-black">
+                  {fetchError}
+                </p>
+                <p className="font-heading text-[8px] text-black/60 font-bold uppercase tracking-wider mt-1">
+                  CHECK_CONNECTION // RETRY LATER
+                </p>
+              </div>
+            ) : routes.length === 0 ? (
+              <div className="border-[3px] border-dashed border-black p-10 text-center bg-white/60">
+                <p className="font-heading text-[10px] font-black uppercase tracking-widest text-black">
+                  NO_ROUTES_YET
+                </p>
+                <p className="font-heading text-[8px] text-black/40 font-bold uppercase tracking-wider mt-1">
+                  BE THE FIRST TO SUGGEST ONE
+                </p>
+              </div>
+            ) : (
+              routes.map((route, i) => (
+                <div
+                  key={route.id}
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                  <CommunityCard
+                    data={route}
+                    onVote={handleVote}
+                    onClick={() => setSelectedRoute(route)}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* CTA FOOTER ─────────────────────────────────────────────────── */}
+          {!loading && (
+            <div className="mt-4 border-[3px] border-black border-dashed bg-white/60 p-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="font-heading text-[9px] text-black uppercase tracking-widest font-black">
+                  KNOW A BETTER ROUTE?
+                </p>
+                <p className="font-heading text-[7px] text-black/40 uppercase tracking-wider font-bold mt-0.5">
+                  TAP TO SHARE YOUR LOCAL KNOWLEDGE
+                </p>
+              </div>
+              <button
+                onClick={handleAddClick}
+                className="shrink-0 bg-brutal-yellow border-[3px] border-black shadow-neo px-4 py-2 font-heading text-[9px] font-black uppercase tracking-widest hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" strokeWidth={3} />
+                ADD
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── FLOATING ADD BUTTON ── */}
+      {/* ── FLOATING ADD BTN ─────────────────────────────────────────────── */}
       <button
         onClick={handleAddClick}
-        className="fixed bottom-24 right-6 z-60 h-16 w-16 bg-brutal-yellow border-[3px] border-black shadow-neo flex items-center justify-center hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer group"
+        className="fixed bottom-24 right-6 z-60 h-14 w-14 bg-brutal-yellow border-[3px] border-black shadow-neo flex items-center justify-center hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer group"
         aria-label="Suggest a route"
       >
-        <Plus className="h-8 w-8 text-black group-hover:rotate-90 transition-transform duration-300" strokeWidth={3} />
+        <Plus className="h-7 w-7 text-black group-hover:rotate-90 transition-transform duration-300" strokeWidth={3} />
       </button>
 
-      {/* ── MODALS ── */}
+      {/* ── DETAIL MODAL ─────────────────────────────────────────────────── */}
       {selectedRoute && (
         <CommunityDetailModal
           route={selectedRoute}
@@ -211,7 +295,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         />
       )}
 
-      {/* ── LOGIN REQUIRED ── */}
+      {/* ── LOGIN REQUIRED ────────────────────────────────────────────────── */}
       {showLoginRequired && (
         <div
           className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 px-4"
@@ -234,10 +318,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             </div>
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => {
-                  setShowLoginRequired(false);
-                  setShowAuthModal(true);
-                }}
+                onClick={() => { setShowLoginRequired(false); setShowAuthModal(true); }}
                 className="w-full bg-black text-white font-heading font-black border-[3px] border-black py-4 shadow-neo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-2"
               >
                 <LogIn className="h-3.5 w-3.5" strokeWidth={3} />
@@ -254,7 +335,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       )}
 
-      {/* ── COMING SOON (logged-in) ── */}
+      {/* ── COMING SOON ──────────────────────────────────────────────────── */}
       {showComingSoon && (
         <div
           className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 px-4"
@@ -285,7 +366,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         </div>
       )}
 
-      {/* ── AUTH MODAL ── */}
+      {/* ── AUTH MODAL ───────────────────────────────────────────────────── */}
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </>
   );
