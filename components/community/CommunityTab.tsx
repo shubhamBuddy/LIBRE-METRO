@@ -312,6 +312,22 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
               ))
             )}
           </div>
+
+          {/* CREDITS FOOTER */}
+          <div className="mt-12 mb-6 text-center opacity-40">
+            <p className="font-heading text-[9px] text-black uppercase tracking-[0.2em] font-black">
+              DEV //{" "}
+              <a 
+                href="https://github.com/otzua/LIBRE-METRO" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-brutal-pink hover:underline"
+              >
+                KRISH
+              </a>{" "}
+              & SHUBHAM
+            </p>
+          </div>
         </div>
       </div>
 

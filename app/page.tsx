@@ -69,6 +69,25 @@ export default function Home() {
       {/* Location feature */}
       <LocationSystem onStationFound={handleUpdateFrom} />
 
+      {/* CREDITS FOOTER */}
+      <footer className="mt-12 text-center pb-8 opacity-60 hover:opacity-100 transition-opacity">
+        <p className="font-heading text-[10px] text-black uppercase tracking-[0.2em] font-black">
+          CREATED_BY //{" "}
+          <a 
+            href="https://github.com/otzua/LIBRE-METRO" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-brutal-pink hover:underline"
+          >
+            KRISH
+          </a>{" "}
+          & SHUBHAM
+        </p>
+        <p className="font-heading text-[6px] text-black/40 mt-1 uppercase tracking-widest font-bold">
+          LIBRE_METRO_SYSTEM // OPEN_SOURCE_PROJECT
+        </p>
+      </footer>
+
       <BottomDock 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
