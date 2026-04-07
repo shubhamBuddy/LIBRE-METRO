@@ -9,14 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#FFFDF5",
-        foreground: "#000000",
-        "brutal-yellow": "#FFD23F",
-        "brutal-pink": "#FF6B6B",
-        "brutal-blue": "#74B9FF",
-        "brutal-green": "#88D498",
-        "brutal-orange": "#FFA552",
-        "brutal-lavender": "#B8A9FA",
+        /* neobrutalism.dev official palette */
+        background:         "#dde8ff",  /* light blue-tinted bg */
+        foreground:         "#000000",
+        "brutal-main":      "#5294FF",  /* neobrutalism.dev main blue */
+        "brutal-yellow":    "#FACC00",  /* chart amber-yellow */
+        "brutal-pink":      "#FF4D50",  /* chart red */
+        "brutal-blue":      "#5294FF",  /* main blue */
+        "brutal-green":     "#05E17A",  /* chart green */
+        "brutal-orange":    "#FF7A05",  /* chart orange */
+        "brutal-lavender":  "#7A83FF",  /* chart indigo-violet */
       },
       fontFamily: {
         heading: ["var(--font-heading)", "cursive"],

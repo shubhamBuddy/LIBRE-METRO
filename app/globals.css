@@ -1,16 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* Canonical Neubrutalist Palette */
-  --color-background: #FFFDF5; /* Off-White */
-  --color-foreground: #000000; /* Black */
-  
-  --color-brutal-yellow: #FFD23F;
-  --color-brutal-pink: #FF6B6B;
-  --color-brutal-blue: #74B9FF;
-  --color-brutal-green: #88D498;
-  --color-brutal-orange: #FFA552;
-  --color-brutal-lavender: #B8A9FA;
+  /* neobrutalism.dev Official Palette */
+  /* Background: light blue-tinted white (oklch 93.46% 0.0304 254.32) */
+  --color-background: #dde8ff;
+  --color-foreground: #000000;
+
+  /* Main accent — neobrutalism.dev blue */
+  --color-brutal-main: #5294FF;
+
+  /* Accent colors from neobrutalism.dev chart palette */
+  --color-brutal-yellow: #FACC00;   /* chart-3 / amber-yellow */
+  --color-brutal-pink:   #FF4D50;   /* chart-2 / red */
+  --color-brutal-blue:   #5294FF;   /* main blue */
+  --color-brutal-green:  #05E17A;   /* chart-4 / green */
+  --color-brutal-orange: #FF7A05;   /* chart-orange */
+  --color-brutal-lavender: #7A83FF; /* chart-5 / indigo-violet */
 
   --font-heading: var(--heading-font), "cursive";
   --font-body: var(--body-font), "sans-serif";
@@ -41,10 +46,10 @@
     margin: 0;
     padding: 0;
     
-    /* Clean Neubrutalist Background with boosted textured grid */
+    /* Clean Neubrutalist Background — blue-tinted per neobrutalism.dev */
     background-color: var(--color-background);
     background-image: 
-      radial-gradient(circle, rgba(0, 0, 0, 0.12) 1.5px, transparent 1.5px);
+      radial-gradient(circle, rgba(0, 0, 82, 0.10) 1.5px, transparent 1.5px);
     background-size: 24px 24px;
     background-attachment: fixed;
   }
