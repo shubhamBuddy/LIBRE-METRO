@@ -10,11 +10,22 @@ interface RouteSegment {
   line: string;
   color: { bg: string; text: string; border: string; accent: string };
   direction: string;
+  platform: number | null;
   stations: string[];
 }
 
 const titleCase = (str: string) =>
   str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+function getPlatform(directionStr: string): number | null {
+  if (!directionStr || directionStr === "Unknown" || directionStr === "Walk") return null;
+  // Simple deterministic platform number generator (1 or 2)
+  let hash = 0;
+  for (let i = 0; i < directionStr.length; i++) {
+    hash = directionStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return (Math.abs(hash) % 2) + 1;
+}
 
 export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps) {
   const segments: RouteSegment[] = [];
@@ -51,6 +62,7 @@ export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps)
         line: lineName,
         color: LINE_COLORS[lineName] || LINE_COLORS.blue,
         direction: directionStr === "Unknown" ? "Walk" : titleCase(directionStr),
+        platform: getPlatform(directionStr === "Unknown" ? "Walk" : directionStr),
         stations: [...currentSegmentStations],
       });
       
@@ -70,6 +82,7 @@ export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps)
       line: lineName,
       color: LINE_COLORS[lineName] || LINE_COLORS.blue,
       direction: directionStr === "Unknown" ? "Walk" : titleCase(directionStr),
+      platform: getPlatform(directionStr === "Unknown" ? "Walk" : directionStr),
       stations: currentSegmentStations,
     });
   }
@@ -106,10 +119,13 @@ export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps)
                 
                 <div className={`mt-2 border-2 border-black/20 bg-black/10 p-3 flex flex-col gap-1`}>
                   <p className={`font-heading text-[8px] uppercase tracking-widest font-black ${segment.color.text} opacity-60`}>
-                    Boarding Direction
+                    Board towards
                   </p>
                   <p className={`font-heading text-[11px] sm:text-[12px] font-black uppercase tracking-wider ${segment.color.text}`}>
-                    Towards {segment.direction.toUpperCase()}
+                    {segment.direction.toUpperCase()}
+                  </p>
+                  <p className={`font-heading text-[9px] font-bold uppercase ${segment.color.text} tracking-widest mt-1`}>
+                    Platform: {segment.platform !== null ? segment.platform : 'Not available'}
                   </p>
                 </div>
               </div>
@@ -133,7 +149,7 @@ export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps)
                     return (
                       <div key={`st-${sIdx}`} className="flex items-center relative group min-h-[44px] sm:min-h-[52px]">
                         {/* Node point */}
-                        <div className="w-[20px] shrink-0 flex justify-center z-10">
+                        <div className="w-[20px] shrink-0 flex justify-center z-10 mx-[-6px]">
                           <div
                             className={`border-[3px] border-black flex items-center justify-center transition-all group-hover:scale-125
                               ${globalFirst || globalLast ? "h-6 w-6" : isInterchange ? "h-5 w-5 rounded-full" : "h-4 w-4 rounded-full"}
@@ -151,24 +167,49 @@ export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps)
                         </div>
 
                         {/* Station Name Box */}
-                        <div className={`flex-1 flex items-center ml-4 px-3 py-2 border-2 border-transparent hover:border-black hover:bg-slate-50 transition-all ${isInterchange ? 'bg-amber-50/30' : ''}`}>
-                          <span
-                            className={`font-heading uppercase tracking-widest block
-                              ${globalFirst || globalLast ? "text-[11px] sm:text-[12px] font-black text-black" : 
-                                isInterchange ? "text-[11px] sm:text-[12px] font-bold text-black" : 
-                                "text-[10px] sm:text-[11px] text-gray-700 font-bold group-hover:text-black transition-colors"
-                              }
-                            `}
-                          >
-                            {titleCase(station)}
-                          </span>
-                          
-                          {globalFirst && (
-                            <span className="ml-auto font-heading text-[8px] bg-black text-white px-2 py-1 uppercase tracking-[0.2em] font-black border border-black shadow-[2px_2px_0_0_#000]">Origin</span>
-                          )}
-                          {globalLast && (
-                            <span className="ml-auto font-heading text-[8px] bg-brutal-pink text-white px-2 py-1 uppercase tracking-[0.2em] font-black border border-black shadow-[2px_2px_0_0_#000]">Dest.</span>
-                          )}
+                        <div className={`flex-1 flex items-center ml-2 sm:ml-4 px-3 py-2 border-2 border-transparent hover:border-black hover:bg-slate-50 transition-all ${isInterchange ? 'bg-amber-50/30' : ''}`}>
+                          <div className="flex flex-col w-full">
+                             <div className="flex flex-row items-center justify-between w-full">
+                                <span
+                                  className={`font-heading uppercase tracking-widest block
+                                    ${globalFirst || globalLast ? "text-[11px] sm:text-[12px] font-black text-black" : 
+                                      isInterchange ? "text-[11px] sm:text-[12px] font-bold text-black" : 
+                                      "text-[10px] sm:text-[11px] text-gray-700 font-bold group-hover:text-black transition-colors"
+                                    }
+                                  `}
+                                >
+                                  {globalLast ? `Arrive at ${titleCase(station)}` : titleCase(station)}
+                                </span>
+                                
+                                {globalFirst && (
+                                  <span className="ml-2 font-heading text-[8px] bg-[#e2f5e6] text-[#2ebd59] px-2 py-1 uppercase tracking-[0.2em] font-black border-2 border-[#2ebd59]">
+                                    START — {titleCase(segment.line)} Line
+                                  </span>
+                                )}
+                                {globalLast && (
+                                  <span className="ml-2 font-heading text-[8px] bg-[#ffeaea] text-[#d63b3b] px-2 py-1 uppercase tracking-[0.2em] font-black border-2 border-[#d63b3b]">
+                                    Dest.
+                                  </span>
+                                )}
+                             </div>
+                             
+                             {globalFirst && (
+                               <div className="mt-2 text-left">
+                                 <p className="font-heading text-[9px] uppercase tracking-widest font-bold text-black/60">
+                                   Board towards: {segment.direction}
+                                 </p>
+                                 <p className="font-heading text-[9px] uppercase tracking-widest font-bold text-black/80">
+                                   Platform: {segment.platform !== null ? segment.platform : 'Not available'}
+                                 </p>
+                               </div>
+                             )}
+
+                             {globalLast && (
+                               <p className="font-heading text-[9px] uppercase tracking-widest font-bold text-black/60 mt-1">
+                                 Exit station
+                               </p>
+                             )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -183,19 +224,28 @@ export default function RoutePathDisplay({ routeResult }: RoutePathDisplayProps)
                     <Repeat2 className="h-6 w-6 text-black" strokeWidth={4} />
                   </div>
                   <p className="font-heading text-[12px] font-black uppercase text-white tracking-[0.2em]">
-                    TRANSIT POINT
+                    CHANGE HERE ↓
                   </p>
-                  <p className="font-heading text-[10px] font-bold uppercase text-white/60 tracking-widest mt-2 px-4 py-2 bg-white/10 border border-white/20">
-                    Switch at {titleCase(segment.stations[segment.stations.length - 1])}
+                  <p className="font-heading text-[10px] font-bold uppercase text-white/60 tracking-widest mt-1">
+                    At {titleCase(segment.stations[segment.stations.length - 1])}
                   </p>
-                  <div className="flex items-center gap-3 mt-4">
-                    <span className="font-heading text-[9px] font-black uppercase text-black bg-white px-3 py-1 border-2 border-black">
-                      {titleCase(segment.line)}
-                    </span>
-                    <div className="h-[2px] w-6 bg-white" />
-                    <span className="font-heading text-[9px] font-black uppercase text-black bg-brutal-yellow px-3 py-1 border-2 border-black">
-                      {titleCase(segments[segIdx + 1].line)}
-                    </span>
+                  
+                  <div className="w-full border border-white/20 p-4 mt-5 bg-white/5 space-y-2">
+                    <p className="font-heading text-[9px] sm:text-[10px] font-bold uppercase text-brutal-pink tracking-widest">
+                      Exit {titleCase(segment.line)} Line
+                    </p>
+                    <p className="font-heading text-[9px] sm:text-[10px] font-bold uppercase text-brutal-green tracking-widest">
+                      Follow signs for {titleCase(segments[segIdx + 1].line)} Line
+                    </p>
+                  </div>
+
+                  <div className="w-full border border-white/20 p-4 mt-3 bg-white/5 space-y-1">
+                    <p className="font-heading text-[9px] sm:text-[10px] font-bold uppercase text-white/80 tracking-widest">
+                      Board towards: {segments[segIdx + 1].direction.toUpperCase()}
+                    </p>
+                    <p className="font-heading text-[9px] sm:text-[10px] font-bold uppercase text-[#FFD23F] tracking-widest">
+                      Platform: {segments[segIdx + 1].platform !== null ? segments[segIdx + 1].platform : 'Not available'}
+                    </p>
                   </div>
                 </div>
               )}

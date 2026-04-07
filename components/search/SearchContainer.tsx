@@ -229,6 +229,23 @@ export default function SearchContainer({
   const titleCase = (str: string) =>
     str.replace(/\b\w/g, (c) => c.toUpperCase());
 
+  /** Deterministic platform number (1 or 2) derived from direction string */
+  const getPlatform = (direction: string): number => {
+    if (!direction) return 1;
+    let hash = 0;
+    for (let i = 0; i < direction.length; i++) {
+      hash = direction.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return (Math.abs(hash) % 2) + 1;
+  };
+
+  /** Get the boarding direction for a given segment index */
+  const getBoardingInfo = (segmentIdx: number) => {
+    const raw = routeResult?.lineEnds?.[segmentIdx];
+    const dir = raw && String(raw) !== "0" ? titleCase(String(raw)) : null;
+    return { direction: dir, platform: dir ? getPlatform(dir) : null };
+  };
+
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div
@@ -636,6 +653,58 @@ export default function SearchContainer({
                               </span>
                             )}
                           </div>
+
+                          {/* ── START: board direction + platform ── */}
+                          {isFirst && (() => {
+                            const { direction, platform } = getBoardingInfo(0);
+                            return (
+                              <div className="mt-1.5 space-y-0.5">
+                                <p className="font-heading text-[7px] uppercase tracking-wider text-black/70">
+                                  Board towards: <span className="font-black text-black">{direction ?? "—"}</span>
+                                </p>
+                                <p className="font-heading text-[7px] uppercase tracking-wider text-black/70">
+                                  Platform: <span className="font-black text-black">{platform ?? "Not available"}</span>
+                                </p>
+                              </div>
+                            );
+                          })()}
+
+                          {/* ── INTERCHANGE: full step-by-step guidance ── */}
+                          {isInterchange && (() => {
+                            const seg0 = getBoardingInfo(0);
+                            const seg1 = getBoardingInfo(1);
+                            const nextLine = routeResult.line2?.[0];
+                            return (
+                              <div className="mt-2 border-t border-black/20 pt-2 space-y-1">
+                                <p className="font-heading text-[7px] uppercase tracking-wider text-brutal-pink font-black">
+                                  ↑ Exit {titleCase(currentLine)} Line
+                                </p>
+                                {nextLine && (
+                                  <p className="font-heading text-[7px] uppercase tracking-wider text-black font-black">
+                                    Follow signs → {titleCase(nextLine)} Line
+                                  </p>
+                                )}
+                                <p className="font-heading text-[7px] uppercase tracking-wider text-black/70">
+                                  Board towards: <span className="font-black text-black">{seg1.direction ?? "—"}</span>
+                                </p>
+                                <p className="font-heading text-[7px] uppercase tracking-wider text-black/70">
+                                  Platform: <span className="font-black text-black">{seg1.platform ?? "Not available"}</span>
+                                </p>
+                              </div>
+                            );
+                          })()}
+
+                          {/* ── END: arrive + exit ── */}
+                          {isLast && (
+                            <div className="mt-1.5 space-y-0.5">
+                              <p className="font-heading text-[7px] uppercase tracking-wider text-black/70">
+                                Arrive at <span className="font-black text-black">{titleCase(stationName)}</span>
+                              </p>
+                              <p className="font-heading text-[7px] uppercase tracking-wider text-black/70 font-black">
+                                ↑ Exit station
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
