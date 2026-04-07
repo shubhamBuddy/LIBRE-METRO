@@ -34,6 +34,8 @@ function mapDbRow(row: any, index: number, userId: string | undefined): Communit
     tip:         row.tip ?? "",
     votes:       row.votes ?? 0,
     userVote:    userVote,
+    author:      row.author_name ?? "COMMUNITY_USER",
+    authorAvatar: row.author_avatar,
     accentColor: ACCENT_COLORS_LIST[index % ACCENT_COLORS_LIST.length],
   };
 }
@@ -86,16 +88,26 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   const [isVisible, setIsVisible]                 = useState(false);
   const [user, setUser]                           = useState<User | null>(null);
 
-  // ── Auth ───────────────────────────────────────────────────────────────────
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  // IMPORTANT: We use getUser() (not just session?.user) because Google OAuth
+  // user_metadata (full_name, avatar_url) is only reliably available on the
+  // server-verified user object, not the JWT-decoded session token.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
+    const loadUser = async () => {
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      setUser(freshUser ?? null);
+    };
+    loadUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_e, session) => {
+      if (session) {
+        // Re-fetch full user from server on every auth change
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        setUser(freshUser ?? null);
         setShowLoginRequired(false);
         setShowAuthModal(false);
+      } else {
+        setUser(null);
       }
     });
     return () => listener.subscription.unsubscribe();
@@ -150,6 +162,8 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   };
 
   const handleRouteSubmitted = (newRoute: { id: string; title: string; route: string[]; votes: number; tag: string; tip: string }) => {
+    // user is already the server-verified object from getUser(), so metadata is reliable
+    const meta = user?.user_metadata ?? {};
     const mapped: CommunityRoute = {
       id: newRoute.id,
       title: newRoute.title,
@@ -158,6 +172,8 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       tip: newRoute.tip,
       votes: 0,
       userVote: null,
+      author: meta.full_name || meta.name || user?.email?.split('@')[0] || "COMMUNITY_USER",
+      authorAvatar: meta.avatar_url || meta.picture || undefined,
       accentColor: ACCENT_COLORS_LIST[0],
     };
     setRoutes(prev => [mapped, ...prev]);
@@ -308,6 +324,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
                     data={route}
                     onVote={handleVote}
                     onClick={() => setSelectedRoute(route)}
+                    isSignedIn={!!user}
                   />
                 </div>
               ))

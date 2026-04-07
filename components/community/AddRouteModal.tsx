@@ -305,6 +305,13 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
     if (!user) { setError("You must be signed in to post."); return; }
     if (segments.length === 0) { setError("Add at least one hop first."); return; }
     setSubmitting(true);
+
+    // Always fetch fresh user data to ensure we have Google's full_name and avatar_url
+    const { data: { user: freshUser } } = await supabase.auth.getUser();
+    const meta = freshUser?.user_metadata ?? {};
+    const authorName = meta.full_name || meta.name || freshUser?.email?.split('@')[0] || "COMMUNITY_USER";
+    const authorAvatar = meta.avatar_url || meta.picture || null;
+
     const { data, error } = await supabase.from("suggestions").insert([{
       origin: fullRoute[0],
       destination: fullRoute[fullRoute.length - 1],
@@ -312,6 +319,9 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
       tip: tip.trim(),
       votes: 0,
       hashtags: [],
+      user_id: freshUser?.id ?? user.id,
+      author_name: authorName,
+      author_avatar: authorAvatar,
     }]).select().single();
     if (error) { setError("Save failed. Try again."); setSubmitting(false); return; }
     setSubmitted(true);

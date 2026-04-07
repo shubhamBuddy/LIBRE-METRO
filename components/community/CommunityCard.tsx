@@ -11,6 +11,7 @@ export interface CommunityRoute {
   votes: number;
   userVote: "up" | "down" | null;
   author?: string;
+  authorAvatar?: string;
   initials?: string;
   accentColor?: string;
 }
@@ -19,6 +20,7 @@ interface CommunityCardProps {
   data: CommunityRoute;
   onVote: (id: string, direction: "up" | "down") => void;
   onClick: () => void;
+  isSignedIn?: boolean;
 }
 
 const TAG_STYLES: Record<string, string> = {
@@ -39,7 +41,7 @@ const ACCENT_COLORS = [
 
 export const ACCENT_COLORS_LIST = ACCENT_COLORS;
 
-export default function CommunityCard({ data, onVote, onClick }: CommunityCardProps) {
+export default function CommunityCard({ data, onVote, onClick, isSignedIn = false }: CommunityCardProps) {
   const tagStyle = TAG_STYLES[data.tag] ?? "bg-brutal-lavender";
   // derive accent from first char of id for deterministic color
   const accentIdx = data.id.charCodeAt(0) % ACCENT_COLORS.length;
@@ -54,9 +56,13 @@ export default function CommunityCard({ data, onVote, onClick }: CommunityCardPr
       {/* ── TOP ROW: avatar + author + tag ─────────────────────────────── */}
       <div className="flex items-center gap-3 px-4 py-3 border-b-[3px] border-black">
         {/* Avatar */}
-        <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center`}>
-          <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
-        </div>
+        {data.authorAvatar ? (
+          <img src={data.authorAvatar} alt={data.author ?? "User"} className="h-9 w-9 shrink-0 border-2 border-black object-cover" />
+        ) : (
+          <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center`}>
+            <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <p className="font-heading text-[9px] font-black text-black uppercase tracking-widest truncate">
@@ -107,27 +113,35 @@ export default function CommunityCard({ data, onVote, onClick }: CommunityCardPr
         {/* Vote controls */}
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => onVote(data.id, "up")}
-            className={`h-8 w-8 flex items-center justify-center border-2 border-black transition-all active:scale-90 cursor-pointer ${
-              data.userVote === "up"
+            onClick={(e) => { 
+                e.stopPropagation(); 
+                onVote(data.id, "up"); 
+            }}
+            disabled={!isSignedIn}
+            className={`h-8 w-8 flex items-center justify-center border-2 border-black transition-all ${!isSignedIn ? "opacity-30 cursor-not-allowed bg-black/10 shadow-none border-dashed" : "cursor-pointer active:scale-90"} ${
+              isSignedIn && data.userVote === "up"
                 ? "bg-brutal-green shadow-none translate-x-[1px] translate-y-[1px]"
-                : "bg-white shadow-neo hover:bg-brutal-green/30"
+                : isSignedIn ? "bg-white shadow-neo hover:bg-brutal-green/30" : ""
             }`}
             aria-label="Upvote"
           >
             <ChevronUp className="h-4 w-4 text-black" strokeWidth={3} />
           </button>
 
-          <span className="font-numbers text-sm font-black min-w-[30px] text-center tabular-nums text-black">
+          <span className={`font-numbers text-sm font-black min-w-[30px] text-center tabular-nums ${!isSignedIn ? "text-black/30" : "text-black"}`}>
             {data.votes > 0 ? `+${data.votes}` : data.votes}
           </span>
 
           <button
-            onClick={() => onVote(data.id, "down")}
-            className={`h-8 w-8 flex items-center justify-center border-2 border-black transition-all active:scale-90 cursor-pointer ${
-              data.userVote === "down"
+            onClick={(e) => { 
+                e.stopPropagation(); 
+                onVote(data.id, "down"); 
+            }}
+            disabled={!isSignedIn}
+            className={`h-8 w-8 flex items-center justify-center border-2 border-black transition-all ${!isSignedIn ? "opacity-30 cursor-not-allowed bg-black/10 shadow-none border-dashed" : "cursor-pointer active:scale-90"} ${
+              isSignedIn && data.userVote === "down"
                 ? "bg-brutal-pink shadow-none translate-x-[1px] translate-y-[1px]"
-                : "bg-white shadow-neo hover:bg-brutal-pink/30"
+                : isSignedIn ? "bg-white shadow-neo hover:bg-brutal-pink/30" : ""
             }`}
             aria-label="Downvote"
           >

@@ -70,6 +70,25 @@ export default function CommunityDetailModal({ route, onClose }: CommunityDetail
             </h2>
           </div>
 
+          {/* AUTHOR */}
+          <div className="flex items-center gap-3 border-[3px] border-black p-3 bg-white shadow-[2px_2px_0px_#000]">
+            {route.authorAvatar ? (
+              <img src={route.authorAvatar} alt={route.author ?? "User"} className="h-10 w-10 shrink-0 border-[3px] border-black object-cover" />
+            ) : (
+              <div className={`h-10 w-10 shrink-0 ${route.accentColor ?? "bg-brutal-lavender"} border-[3px] border-black flex items-center justify-center`}>
+                <span className="font-heading text-[12px] font-black text-black tracking-wider">{route.initials ?? (route.author ? route.author.slice(0, 2).toUpperCase() : "CM")}</span>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-heading text-[10px] font-black text-black uppercase tracking-widest truncate">
+                {route.author ?? "COMMUNITY_USER"}
+              </p>
+              <p className="font-heading text-[8px] text-black/50 uppercase tracking-widest font-black">
+                ROUTE_CONTRIBUTOR // VERIFIED
+              </p>
+            </div>
+          </div>
+
           {/* ROUTE STEPS WITH CONTINUOUS LINE */}
           <div className="space-y-5">
             <span className="font-heading text-[10px] text-black/40 uppercase tracking-[0.2em] font-black block">
