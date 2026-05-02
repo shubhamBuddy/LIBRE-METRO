@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, X, Check, Train, AlertTriangle, Trash2, Loader2 } from "lucide-react";
+import { Plus, X, Check, Train, AlertTriangle, Trash2, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -410,7 +410,9 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
                       <div className="bg-brutal-green border-b-[3px] border-black p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Check className="h-4 w-4 text-black" strokeWidth={3} />
-                          <p className="font-heading font-black text-sm uppercase">{seg.from} → {seg.to}</p>
+                          <p className="font-heading font-black text-sm uppercase flex items-center gap-2">
+                            {seg.from} <ArrowRight className="h-3 w-3" /> {seg.to}
+                          </p>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-[9px] bg-black text-white px-2 py-0.5 font-black uppercase">{seg.stations.length} STOPS</span>
@@ -428,8 +430,8 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
 
                   {/* Next hop input */}
                   <div className="border-[4px] border-dashed border-black bg-black/[0.03] p-5 space-y-4">
-                    <p className="font-heading text-xs font-black uppercase text-black/40 tracking-widest">
-                      {lastStation} → NEXT STATION?
+                    <p className="font-heading text-xs font-black uppercase text-black/40 tracking-widest flex items-center gap-2">
+                      {lastStation} <ArrowRight className="h-2.5 w-2.5" /> NEXT STATION?
                     </p>
                     <StationInput
                       placeholder="Search next destination..."

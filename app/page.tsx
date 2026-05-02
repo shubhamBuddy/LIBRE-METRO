@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SearchContainer from "@/components/search/SearchContainer";
 import LocationSystem from "@/components/location/LocationSystem";
 import BottomDock, { NavItem } from "@/components/navigation/BottomDock";
@@ -16,159 +16,135 @@ export default function Home() {
   const [showCommunity,        setShowCommunity]        = useState(false);
   const [showAuthModal,        setShowAuthModal]        = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [accent, setAccent]   = useState("#FF2E88");
 
-  useEffect(() => {
-    setMounted(true);
-    // Read current accent from html style
-    const updateAccent = () => {
-      const a = document.documentElement.style.getPropertyValue("--accent").trim();
-      if (a) setAccent(a);
-    };
-    updateAccent();
-
-    if (!localStorage.getItem("libre_personalized")) {
-      const t = setTimeout(() => handleTabChange("personalize"), 800);
-      return () => clearTimeout(t);
-    }
+  const handleTabChange = useCallback((tab: NavItem) => {
+    setActiveTab((prev) => {
+      const target = tab === prev && tab !== "home" ? "home" : tab;
+      if (target === "home") {
+        setShowPersonalizeModal(false);
+        setShowCommunity(false);
+      } else if (target === "community") {
+        setShowPersonalizeModal(false);
+        setShowCommunity(true);
+      } else if (target === "personalize") {
+        setShowCommunity(false);
+        setShowPersonalizeModal(true);
+      }
+      return target;
+    });
   }, []);
 
-  const handleTabChange = (tab: NavItem) => {
-    const target = tab === activeTab && tab !== "home" ? "home" : tab;
-    setActiveTab(target);
-    if (target === "home") {
-      setShowPersonalizeModal(false);
-      setShowCommunity(false);
-    } else if (target === "community") {
-      setShowPersonalizeModal(false);
-      setShowCommunity(true);
-    } else if (target === "personalize") {
-      setShowCommunity(false);
-      setShowPersonalizeModal(true);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    let t: NodeJS.Timeout | null = null;
+    if (!localStorage.getItem("libre_personalized")) {
+      t = setTimeout(() => handleTabChange("personalize"), 800);
     }
-  };
+    return () => {
+      cancelAnimationFrame(raf);
+      if (t) clearTimeout(t);
+    };
+  }, [handleTabChange]);
 
   const closePersonalizeModal = () => {
     localStorage.setItem("libre_personalized", "true");
     handleTabChange("home");
   };
 
-  const BORDER = "3px solid #000";
-  const SHADOW = "4px 4px 0 #000";
-  const FONT_HEADING = "var(--heading-font), monospace";
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: 120, paddingTop: 16 }}>
+    <div className="flex flex-col items-center pb-[120px] pt-4 px-4 w-full nb-stagger">
 
       {/* ── HERO HEADER ─────────────────────────────────────────────────── */}
-      <div style={{ width: "100%", maxWidth: 500, marginBottom: 16 }}>
+      <div className="w-full max-w-[500px] mb-4 nb-anim-up">
 
         {/* Main title block */}
-        <div style={{
-          backgroundColor: accent,
-          border: BORDER,
-          boxShadow: SHADOW,
-          padding: "20px 20px 16px",
-          position: "relative",
-          overflow: "hidden",
-        }}>
+        <div className="nb-card-accent relative overflow-hidden p-5 pb-4">
           {/* Corner tag */}
-          <div style={{
-            position: "absolute", top: 0, right: 0,
-            background: "#000", padding: "4px 10px",
-            borderLeft: BORDER, borderBottom: BORDER,
-          }}>
-            <span style={{ fontFamily: FONT_HEADING, fontSize: 7, color: "#fff", letterSpacing: "0.2em" }}>DMRC // LIVE</span>
+          <div className="absolute top-0 right-0 bg-black px-2.5 py-1 border-l-[3px] border-b-[3px] border-black">
+            <span className="font-heading text-[7px] text-white tracking-[0.2em]">DMRC // LIVE</span>
           </div>
 
           {/* Status row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <span style={{ display: "inline-block", width: 8, height: 8, background: "#000", borderRadius: "50%", animation: "pulse 2s infinite" }} />
-            <span style={{ fontFamily: FONT_HEADING, fontSize: 7, color: "rgba(0,0,0,0.55)", letterSpacing: "0.18em" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-block w-2 h-2 bg-black rounded-full nb-pulse-dot" />
+            <span className="font-heading text-[7px] text-black/55 tracking-[0.18em]">
               SYSTEM_ONLINE // 230 STATIONS
             </span>
           </div>
 
           {/* Big title */}
-          <div style={{ fontFamily: FONT_HEADING, fontSize: 26, lineHeight: 1.1, fontWeight: 900, color: "#000", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+          <div className="font-heading text-[28px] leading-[1.05] font-black text-black tracking-[0.04em] uppercase">
             LIBRE<br />
-            <span style={{ color: "#fff", WebkitTextStroke: "2px #000" }}>METRO</span>
+            <span className="text-white" style={{ WebkitTextStroke: "2px #000" }}>METRO</span>
           </div>
 
-          <div style={{ fontFamily: FONT_HEADING, fontSize: 7, marginTop: 8, color: "rgba(0,0,0,0.5)", letterSpacing: "0.15em" }}>
+          <div className="font-heading text-[7px] mt-2.5 text-black/45 tracking-[0.15em]">
             SHORTEST_PATH · DIJKSTRA · FREE · OPEN_SOURCE
           </div>
 
           {/* Decorative bars (bottom right) */}
-          <div style={{ position: "absolute", bottom: 8, right: 16, display: "flex", gap: 3, alignItems: "flex-end", opacity: 0.25 }}>
+          <div className="absolute bottom-2 right-4 flex gap-[3px] items-end opacity-20">
             {[14,8,18,10,20,12,16].map((h, i) => (
-              <div key={i} style={{ width: 5, height: h, background: "#000" }} />
+              <div key={i} className="w-[5px] bg-black" style={{ height: h }} />
             ))}
           </div>
         </div>
 
         {/* Stats strip */}
-        <div style={{ display: "flex", border: BORDER, borderTop: "none" }}>
+        <div className="flex border-[3px] border-t-0 border-black shadow-neo bg-white">
           {[
             { label: "LINES",    value: "11" },
             { label: "STATIONS", value: "230" },
             { label: "ALGO",     value: "DIJKSTRA" },
           ].map((item, i) => (
-            <div key={i} style={{
-              flex: 1,
-              padding: "8px 12px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              background: "#fff",
-              borderRight: i < 2 ? BORDER : "none",
-            }}>
-              <span style={{ fontFamily: FONT_HEADING, fontSize: 6, color: "rgba(0,0,0,0.35)", letterSpacing: "0.15em", textTransform: "uppercase" }}>{item.label}</span>
-              <span style={{ fontFamily: FONT_HEADING, fontSize: 11, color: "#000", fontWeight: 900, marginTop: 2 }}>{item.value}</span>
+            <div key={i} className={`flex-1 p-2.5 flex flex-col items-center bg-white ${i < 2 ? 'border-r-[3px] border-black' : ''}`}>
+              <span className="font-heading text-[6px] text-black/30 tracking-[0.15em] uppercase">{item.label}</span>
+              <span className="font-heading text-[11px] text-black font-black mt-0.5">{item.value}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── SEARCH ──────────────────────────────────────────────────────── */}
-      <SearchContainer
-        from={fromStation}
-        setFrom={setFromStation}
-        to={toStation}
-        setTo={setToStation}
-      />
+      <div className="w-full max-w-[500px] nb-anim-up" style={{ animationDelay: '80ms' }}>
+        <SearchContainer
+          from={fromStation}
+          setFrom={setFromStation}
+          to={toStation}
+          setTo={setToStation}
+        />
+      </div>
 
       {/* ── LOCATION ────────────────────────────────────────────────────── */}
-      <LocationSystem onStationFound={(s) => setFromStation(s.toUpperCase())} />
+      <div className="nb-anim-up" style={{ animationDelay: '160ms' }}>
+        <LocationSystem onStationFound={(s) => setFromStation(s.toUpperCase())} />
+      </div>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────── */}
-      <div style={{
-        width: "100%", maxWidth: 500, marginTop: 40,
-        border: BORDER, background: "#000",
-        boxShadow: `4px 4px 0 ${accent}`,
-        padding: "14px 16px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
+      <div 
+        className="w-full max-w-[500px] mt-10 border-[3px] border-black bg-black p-[14px_16px] flex items-center justify-between nb-anim-up shadow-[4px_4px_0_var(--accent,#FF2E88)]"
+        style={{ animationDelay: '240ms' }}
+      >
         <div>
-          <div style={{ fontFamily: FONT_HEADING, fontSize: 8, color: "rgba(255,255,255,0.6)", letterSpacing: "0.15em" }}>
+          <div className="font-heading text-[8px] text-white/60 tracking-[0.15em]">
             MADE BY{" "}
             <a href="https://github.com/otzua/LIBRE-METRO" target="_blank" rel="noopener noreferrer"
-              style={{ color: accent, textDecoration: "underline" }}>
+              className="underline underline-offset-2 text-[var(--accent,#FF2E88)] hover:text-white transition-colors">
               KRISH
             </a>{" "}
-            &amp; SHUBHAM
+            & SHUBHAM
           </div>
-          <div style={{ fontFamily: FONT_HEADING, fontSize: 6, color: "rgba(255,255,255,0.25)", marginTop: 3, letterSpacing: "0.15em" }}>
+          <div className="font-heading text-[6px] text-white/20 mt-1 tracking-[0.15em]">
             LIBRE_METRO · OPEN SOURCE
           </div>
         </div>
         {/* LIVE pill */}
-        <div style={{
-          backgroundColor: accent, border: "2px solid #fff",
-          padding: "5px 10px", display: "flex", alignItems: "center", gap: 6,
-        }}>
-          <span style={{ width: 6, height: 6, background: "#000", borderRadius: "50%", display: "inline-block" }} />
-          <span style={{ fontFamily: FONT_HEADING, fontSize: 7, color: "#000", fontWeight: 900, letterSpacing: "0.15em" }}>LIVE</span>
+        <div className="border-2 border-white/30 px-2.5 py-1.5 flex items-center gap-1.5" style={{ backgroundColor: "var(--accent, #FF2E88)" }}>
+          <span className="w-1.5 h-1.5 bg-black rounded-full inline-block nb-pulse-dot" />
+          <span className="font-heading text-[7px] text-black font-black tracking-[0.15em]">LIVE</span>
         </div>
       </div>
 

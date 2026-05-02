@@ -13,8 +13,10 @@ const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { 
 const Polyline = dynamic(() => import("react-leaflet").then((mod) => mod.Polyline), { ssr: false });
 
 // Helper to keep Leaflet work correctly with custom icons in Next.js
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let LInstance: any;
 if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   LInstance = require('leaflet');
 }
 

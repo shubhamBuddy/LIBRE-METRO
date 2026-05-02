@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronUp, ChevronDown, ArrowRight } from "lucide-react";
+import React from "react";
 
 export interface CommunityRoute {
   id: string;
@@ -41,7 +42,24 @@ const ACCENT_COLORS = [
 
 export const ACCENT_COLORS_LIST = ACCENT_COLORS;
 
-export default function CommunityCard({ data, onVote, onClick, isSignedIn }: CommunityCardProps) {
+/**
+ * Renders a string with "→" replaced by the ArrowRight icon.
+ */
+function RenderTitle({ title }: { title: string }) {
+  const parts = title.split("→");
+  return (
+    <span className="flex items-center gap-1.5 flex-wrap">
+      {parts.map((p, i) => (
+        <React.Fragment key={i}>
+          {p.trim()}
+          {i < parts.length - 1 && <ArrowRight className="h-3 w-3 inline-block" />}
+        </React.Fragment>
+      ))}
+    </span>
+  );
+}
+
+export default function CommunityCard({ data, onVote, onClick }: CommunityCardProps) {
   const tagStyle = TAG_STYLES[data.tag] ?? "bg-brutal-lavender";
   // derive accent from first char of id for deterministic color
   const accentIdx = data.id.charCodeAt(0) % ACCENT_COLORS.length;
@@ -58,6 +76,7 @@ export default function CommunityCard({ data, onVote, onClick, isSignedIn }: Com
         {/* Avatar */}
         <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center overflow-hidden`}>
           {data.authorAvatar ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img src={data.authorAvatar} alt={data.author} className="h-full w-full object-cover" />
           ) : (
             <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
@@ -83,7 +102,7 @@ export default function CommunityCard({ data, onVote, onClick, isSignedIn }: Com
       <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-start sm:gap-6 border-b-[3px] border-black">
         <div className="flex-1 min-w-0 mb-1 sm:mb-0">
           <p className="font-heading text-[12px] sm:text-[11px] font-black text-black uppercase tracking-wider leading-relaxed">
-            {data.title}
+            <RenderTitle title={data.title} />
           </p>
         </div>
         <p className="text-black/55 text-[10px] sm:text-[9px] font-heading uppercase tracking-wider leading-relaxed font-bold sm:max-w-[50%]">

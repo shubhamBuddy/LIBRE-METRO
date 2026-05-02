@@ -12,14 +12,17 @@ export default function FareBreakdown({ stopsCount }: FareBreakdownProps) {
   const [isOffPeak, setIsOffPeak] = useState(false);
 
   useEffect(() => {
-    const date = new Date();
-    setDayName(date.toLocaleDateString("en-US", { weekday: "long" }));
-    
-    // Check if off peak (before 8 AM, 12-5 PM, after 9 PM)
-    const hour = date.getHours();
-    if (hour < 8 || (hour >= 12 && hour < 17) || hour >= 21) {
-      setIsOffPeak(true);
-    }
+    const timer = setTimeout(() => {
+      const date = new Date();
+      setDayName(date.toLocaleDateString("en-US", { weekday: "long" }));
+      
+      // Check if off peak (before 8 AM, 12-5 PM, after 9 PM)
+      const hour = date.getHours();
+      if (hour < 8 || (hour >= 12 && hour < 17) || hour >= 21) {
+        setIsOffPeak(true);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Distance estimate: (stops - 1) intervals × ~1.1km avg Delhi Metro inter-station spacing
@@ -57,9 +60,9 @@ export default function FareBreakdown({ stopsCount }: FareBreakdownProps) {
   const savings = baseFare - smartCardFare;
 
   return (
-    <div className="bg-white border-2 border-black shadow-neo relative overflow-hidden flex flex-col w-full">
+    <div className="bg-white border-[3px] border-black shadow-neo relative overflow-hidden flex flex-col w-full">
       {/* SYSTEM HEADER */}
-      <div className="h-8 bg-black flex items-center px-3 justify-between">
+      <div className="h-9 bg-black flex items-center px-3 justify-between">
         <span className="font-heading text-[8px] text-white tracking-[0.1em]">
           DATA // FARE_ESTIMATION
         </span>
@@ -83,7 +86,7 @@ export default function FareBreakdown({ stopsCount }: FareBreakdownProps) {
         <div className="absolute left-[38px] top-6 bottom-0 w-[2px] bg-black/10 z-0 hidden md:block" />
 
         {/* TOKEN / QR CARD */}
-        <div className="flex-1 border-2 border-black bg-white p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] relative z-10 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+        <div className="flex-1 border-[3px] border-black bg-white p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] relative z-10 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
           <div className="font-heading text-[9px] md:text-[10px] tracking-widest uppercase mb-1.5 flex items-center gap-1.5 opacity-80 text-black">
             <Ticket className="h-3 w-3" /> TOKEN / QR
           </div>
@@ -93,7 +96,7 @@ export default function FareBreakdown({ stopsCount }: FareBreakdownProps) {
         </div>
 
         {/* SMART CARD CARD */}
-        <div className="flex-1 border-2 border-black bg-brutal-yellow p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden z-10 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between">
+        <div className="flex-1 border-[3px] border-black bg-brutal-yellow p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden z-10 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between">
           <div>
             <div className="font-heading text-[9px] md:text-[10px] tracking-widest uppercase mb-1.5 flex items-center gap-1.5 text-black">
               <CreditCard className="h-3 w-3" /> SMART CARD / NCMC
@@ -106,7 +109,7 @@ export default function FareBreakdown({ stopsCount }: FareBreakdownProps) {
             </div>
           </div>
           
-          <div className="absolute right-0 bottom-0 bg-white border-t-2 border-l-2 border-black px-2 py-1 flex items-center gap-1 opacity-90">
+          <div className="absolute right-0 bottom-0 bg-white border-t-[3px] border-l-[3px] border-black px-2 py-1 flex items-center gap-1">
             <span className="font-heading text-[8px] font-black tracking-widest text-black">
               SAVE ₹{savings}
             </span>

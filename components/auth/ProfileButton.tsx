@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { CircleUser, LogOut, ChevronUp } from "lucide-react";
+import { CircleUser, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,7 +11,7 @@ interface ProfileButtonProps {
   onOpenAuth: () => void;
 }
 
-export default function ProfileButton({ inDock = false, onOpenAuth }: ProfileButtonProps) {
+export default function ProfileButton({ onOpenAuth }: ProfileButtonProps) {
   const [user, setUser] = useState<User | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);

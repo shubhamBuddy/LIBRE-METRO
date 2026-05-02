@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         {/* Thin accent stripe at top */}
         <div
-          className="fixed top-0 left-0 right-0 h-[4px] z-[9999] border-b-2 border-black"
+          className="fixed top-0 left-0 right-0 h-[5px] z-[9999] border-b-[2px] border-black"
           style={{ backgroundColor: "var(--accent, #FF2E88)" }}
         />
 

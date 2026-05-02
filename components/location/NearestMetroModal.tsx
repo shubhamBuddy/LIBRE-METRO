@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RefreshCw, MapPin, Crosshair, AlertTriangle, CheckCircle } from "lucide-react";
+import { RefreshCw, MapPin, Crosshair, AlertTriangle, CheckCircle, X } from "lucide-react";
 
 interface StationResult {
   name: string;
@@ -85,7 +85,7 @@ export default function NearestMetroModal({
               className="h-8 w-8 flex items-center justify-center bg-brutal-pink border-2 border-black/20 hover:brightness-95 active:scale-95 transition-all cursor-pointer font-heading text-black text-xs font-black"
               aria-label="Close"
             >
-              ✕
+              <X className="h-4 w-4 text-black" strokeWidth={4} />
             </button>
           </div>
         </div>

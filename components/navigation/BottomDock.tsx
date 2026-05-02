@@ -27,48 +27,27 @@ export default function BottomDock({ activeTab, onTabChange, onOpenAuth }: Botto
   const activeIdx = navItems.findIndex(i => i.id === activeTab);
   const totalCols  = navItems.length + 1; // 3 nav + 1 account
 
-  const BORDER = "3px solid #000";
-  const FONT   = "var(--heading-font), monospace";
-
   return (
-    <div style={{
-      position: "fixed",
-      bottom: 20,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "calc(100% - 32px)",
-      maxWidth: 480,
-      zIndex: 500,
-    }}>
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[480px] z-[500]">
       <motion.div
         initial={{ y: 24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 26 }}
-        style={{
-          display: "flex",
-          background: "#fff",
-          border: BORDER,
-          boxShadow: "6px 6px 0 #000",
-          position: "relative",
-          overflow: "visible",
-        }}
+        transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 28 }}
+        className="flex bg-white border-[3px] border-black shadow-[6px_6px_0_#000] relative overflow-visible"
       >
         {/* Sliding accent indicator */}
         <motion.div
           initial={false}
           animate={{ x: `${activeIdx * 100}%` }}
           transition={{ type: "spring", stiffness: 500, damping: 38 }}
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            width: `${100 / totalCols}%`,
-            backgroundColor: "var(--accent, #FF2E88)",
-            borderRight: BORDER,
-            borderLeft: BORDER,
-            zIndex: 0,
-          }}
-        />
+          className="absolute top-0 bottom-0 z-0 pointer-events-none"
+          style={{ width: `${100 / totalCols}%` }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: "var(--accent, #FF2E88)" }}
+          />
+        </motion.div>
 
         {/* Nav buttons */}
         {navItems.map((item, i) => {
@@ -79,22 +58,7 @@ export default function BottomDock({ activeTab, onTabChange, onOpenAuth }: Botto
               key={item.id}
               id={`dock-${item.id}`}
               onClick={() => handleClick(item.id)}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 3,
-                padding: "12px 0",
-                cursor: "pointer",
-                background: "transparent",
-                border: "none",
-                borderLeft: i !== 0 ? BORDER : "none",
-                position: "relative",
-                zIndex: 10,
-                userSelect: "none",
-              }}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 cursor-pointer bg-transparent border-none relative z-10 select-none ${i !== 0 ? 'border-l-[3px] border-black' : ''}`}
             >
               <motion.div
                 animate={isActive ? { scale: 1.2, y: -1 } : { scale: 1, y: 0 }}
@@ -102,15 +66,7 @@ export default function BottomDock({ activeTab, onTabChange, onOpenAuth }: Botto
               >
                 <Icon size={16} strokeWidth={isActive ? 3 : 2} color="#000" />
               </motion.div>
-              <span style={{
-                fontFamily: FONT,
-                fontSize: 6,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-                fontWeight: 900,
-                color: "#000",
-                opacity: isActive ? 1 : 0.35,
-              }}>
+              <span className={`font-heading text-[6px] tracking-[0.15em] uppercase font-black text-black transition-opacity ${isActive ? 'opacity-100' : 'opacity-30'}`}>
                 {item.label}
               </span>
             </button>
@@ -118,15 +74,8 @@ export default function BottomDock({ activeTab, onTabChange, onOpenAuth }: Botto
         })}
 
         {/* Account button — overflow visible so dropdown can escape */}
-        <div style={{
-          flex: 1,
-          borderLeft: BORDER,
-          position: "relative",
-          zIndex: 10,
-          background: "#fff",
-          overflow: "visible",
-        }}>
-          <ProfileButton inDock onOpenAuth={onOpenAuth} />
+        <div className="flex-1 border-l-[3px] border-black relative z-10 bg-white overflow-visible">
+          <ProfileButton onOpenAuth={onOpenAuth} />
         </div>
       </motion.div>
     </div>

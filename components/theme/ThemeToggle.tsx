@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check, ChevronUp, ChevronDown } from "lucide-react";
 
 type Theme = "pink" | "yellow" | "blue";
 
@@ -35,9 +36,12 @@ export default function ThemeToggle() {
   useEffect(() => {
     const saved = localStorage.getItem("libre-metro-theme") as Theme;
     const init  = saved && ["pink","yellow","blue"].includes(saved) ? saved : "pink";
-    setActive(init);
-    applyTheme(init);
-    setMounted(true);
+    const raf = requestAnimationFrame(() => {
+      setActive(init);
+      applyTheme(init);
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const select = (theme: Theme) => {
@@ -51,31 +55,16 @@ export default function ThemeToggle() {
   const current = THEMES.find(t => t.id === active)!;
 
   return (
-    <div className="fixed top-5 left-4 z-[9999]" style={{ fontFamily: "var(--heading-font), monospace" }}>
+    <div className="fixed top-5 left-4 z-[9999] font-heading">
       {/* Trigger button */}
       <button
         onClick={() => setOpen(o => !o)}
-        style={{
-          backgroundColor: current.accent,
-          color: active === "yellow" ? "#000" : "#000",
-          border: "3px solid #000",
-          boxShadow: open ? "none" : "4px 4px 0 #000",
-          transform: open ? "translate(2px,2px)" : "none",
-          padding: "6px 12px",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          cursor: "pointer",
-          fontSize: 9,
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
-          fontWeight: 900,
-          transition: "box-shadow 0.1s, transform 0.1s",
-        }}
+        className={`flex items-center gap-2 px-3 py-1.5 border-[3px] border-black text-[9px] tracking-[0.2em] uppercase font-black text-black cursor-pointer transition-all ${open ? 'shadow-none translate-x-[2px] translate-y-[2px]' : 'shadow-neo'}`}
+        style={{ backgroundColor: current.accent }}
       >
         {/* Color dot */}
-        <span style={{ display:"inline-block", width:8, height:8, borderRadius:"50%", background:"#000", border:"1px solid #000", flexShrink:0 }} />
-        SKIN {open ? "▲" : "▼"}
+        <span className="inline-block w-2 h-2 rounded-full bg-black border border-black shrink-0" />
+        SKIN {open ? <ChevronUp className="h-2.5 w-2.5 ml-1 inline" /> : <ChevronDown className="h-2.5 w-2.5 ml-1 inline" />}
       </button>
 
       {/* Dropdown */}
@@ -86,21 +75,11 @@ export default function ThemeToggle() {
             animate={{ opacity: 1, y: 0, scaleY: 1 }}
             exit={{ opacity: 0, y: -4, scaleY: 0.95 }}
             transition={{ duration: 0.12 }}
-            style={{
-              transformOrigin: "top left",
-              position: "absolute",
-              top: "calc(100% + 4px)",
-              left: 0,
-              width: 170,
-              border: "3px solid #000",
-              background: "#fff",
-              boxShadow: "4px 4px 0 #000",
-              zIndex: 9999,
-            }}
+            className="origin-top-left absolute top-[calc(100%+4px)] left-0 w-[170px] border-[3px] border-black bg-white shadow-neo z-[9999]"
           >
             {/* Header */}
-            <div style={{ background: "#000", padding: "6px 12px" }}>
-              <span style={{ fontSize: 7, color: "rgba(255,255,255,0.5)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+            <div className="bg-black px-3 py-1.5">
+              <span className="text-[7px] text-white/50 tracking-[0.2em] uppercase">
                 CHOOSE SKIN
               </span>
             </div>
@@ -111,44 +90,14 @@ export default function ThemeToggle() {
                 <button
                   key={t.id}
                   onClick={() => select(t.id)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 12px",
-                    cursor: "pointer",
-                    background: isActive ? t.accent : "#fff",
-                    borderBottom: i < THEMES.length - 1 ? "2px solid #000" : "none",
-                    border: "none",
-                    borderBottomWidth: i < THEMES.length - 1 ? 2 : 0,
-                    borderBottomStyle: "solid",
-                    borderBottomColor: "#000",
-                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 cursor-pointer border-none ${i < THEMES.length - 1 ? 'border-b-2 border-black border-solid' : ''}`}
+                  style={{ backgroundColor: isActive ? t.accent : "#fff" }}
                 >
                   {/* Swatch */}
-                  <span style={{
-                    width: 20,
-                    height: 20,
-                    background: t.accent,
-                    border: "2px solid #000",
-                    boxShadow: isActive ? "2px 2px 0 #000" : "1px 1px 0 #000",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    fontSize: 9,
-                    fontWeight: 900,
-                  }}>
-                    {isActive ? "✓" : ""}
+                  <span className={`w-5 h-5 border-2 border-black flex items-center justify-center shrink-0 text-[9px] font-black ${isActive ? 'shadow-[2px_2px_0_#000]' : 'shadow-[1px_1px_0_#000]'}`} style={{ backgroundColor: t.accent }}>
+                    {isActive ? <Check className="h-3 w-3 text-black" strokeWidth={4} /> : ""}
                   </span>
-                  <span style={{
-                    fontSize: 9,
-                    letterSpacing: "0.15em",
-                    textTransform: "uppercase",
-                    fontWeight: 900,
-                    color: isActive ? "#000" : "rgba(0,0,0,0.45)",
-                  }}>
+                  <span className={`text-[9px] tracking-[0.15em] uppercase font-black ${isActive ? 'text-black' : 'text-black/45'}`}>
                     {t.label}
                   </span>
                 </button>
@@ -156,8 +105,8 @@ export default function ThemeToggle() {
             })}
 
             {/* Footer */}
-            <div style={{ background: "#f5f5f5", padding: "4px 12px", borderTop: "2px solid #000" }}>
-              <span style={{ fontSize: 6, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(0,0,0,0.3)" }}>
+            <div className="bg-[#f5f5f5] px-3 py-1 border-t-2 border-black">
+              <span className="text-[6px] tracking-[0.15em] uppercase text-black/30">
                 LIBRE_METRO v2
               </span>
             </div>

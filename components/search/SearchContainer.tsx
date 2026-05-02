@@ -9,9 +9,8 @@ import {
   TriangleAlert,
   Train,
   Lightbulb,
-  Crosshair,
+  ArrowRightLeft,
 } from "lucide-react";
-import LocationSystem from "@/components/location/LocationSystem";
 import FareBreakdown from "./FareBreakdown";
 import { lazy, Suspense } from "react";
 const MapView = lazy(() => import("@/components/map/MapView"));
@@ -61,11 +60,6 @@ export const LINE_COLORS: Record<
   "1.2km Skywalk": { bg: "bg-[#9E9E9E]", text: "text-white", border: "border-[#9E9E9E]", accent: "#9E9E9E" },
 };
 
-function getLineColor(lines: string[] | undefined) {
-  if (!lines || lines.length === 0) return LINE_COLORS.blue;
-  return LINE_COLORS[lines[0]] || LINE_COLORS.blue;
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function SearchContainer({
@@ -86,7 +80,6 @@ export default function SearchContainer({
     name: string;
   } | null>(null);
   const [routeResult, setRouteResult] = useState<MetroRouteResponse | null>(null);
-  const [routeMode, setRouteMode] = useState<"fastest" | "comfort">("fastest");
 
   // Station index for client-side autocomplete + pre-validation
   const [stationIndex, setStationIndex] = useState<StationRecord[]>([]);
@@ -178,7 +171,7 @@ export default function SearchContainer({
 
     try {
       const response = await fetch(
-        `/api/dmrc?type=route&from=${encodeURIComponent(from.trim())}&to=${encodeURIComponent(to.trim())}&mode=${routeMode}`
+        `/api/dmrc?type=route&from=${encodeURIComponent(from.trim())}&to=${encodeURIComponent(to.trim())}&mode=fastest`
       );
       const data: MetroRouteResponse = await response.json();
 
@@ -196,7 +189,7 @@ export default function SearchContainer({
     } finally {
       setLoading(false);
     }
-  }, [from, to, stationIndex, routeMode]);
+  }, [from, to, stationIndex]);
 
   // ── Autocomplete suggestions ─────────────────────────────────────────────
   const getFilteredStations = (query: string): StationRecord[] => {
@@ -261,27 +254,19 @@ export default function SearchContainer({
       className="mx-auto w-full max-w-[500px] mt-2 animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col gap-4"
     >
       {/* ── MAIN SEARCH CONTAINER ── */}
-      <div style={{ background:"#fff", border:"3px solid #000", boxShadow:"6px 6px 0 #000", position:"relative", flexShrink:0 }}>
+      <div className="bg-white border-[3px] border-black shadow-[6px_6px_0_#000] relative shrink-0">
         {/* Header bar — accent color */}
-        <div style={{
-          backgroundColor: "var(--accent, #FF2E88)",
-          borderBottom: "3px solid #000",
-          padding: "8px 16px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
-          <span style={{ fontFamily:"var(--heading-font),monospace", fontSize:8, color:"#000", letterSpacing:"0.18em", fontWeight:900 }}>
+        <div className="bg-[var(--accent,#FF2E88)] border-b-[3px] border-black px-4 py-2.5 flex justify-between items-center">
+          <span className="font-heading text-[8px] text-black tracking-[0.18em] font-black">
             ROUTE_FINDER // CTRL_PANEL
           </span>
-          <div style={{ display:"flex", gap:4 }}>
-            <div style={{ width:12, height:12, background:"#000" }} />
-            <div style={{ width:12, height:12, background:"#fff", border:"2px solid #000" }} />
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 bg-black" />
+            <div className="w-3 h-3 bg-white border-2 border-black" />
           </div>
         </div>
 
-        <div className="p-6 space-y-6 relative">
-          <div className="absolute left-[78px] top-36 h-10 w-1 bg-black z-0" />
+        <div className="p-5 sm:p-6 space-y-5 relative">
 
           {/* ── 1. FROM STATION ────────────────────────────────────────────── */}
           <div className="relative z-30">
@@ -316,10 +301,7 @@ export default function SearchContainer({
                   getFilteredStations(from).map((station, i) => (
                     <div
                       key={i}
-                      className="px-4 py-3 border-b-[2px] border-black/20 cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors hover:text-black"
-                      style={{  }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--bg-accent)")}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
+                      className="px-4 py-3 border-b-[2px] border-black/10 cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-all hover:bg-[var(--accent-soft,#FFE0EE)] hover:pl-5"
                       onClick={() => {
                         setFrom(station.original);
                         setSuggestion(null);
@@ -330,7 +312,7 @@ export default function SearchContainer({
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-3 font-heading text-[10px] uppercase text-black/50">
+                  <div className="px-4 py-3 font-heading text-[10px] uppercase text-black/40">
                     NO MATCHES FOUND
                   </div>
                 )}
@@ -382,9 +364,7 @@ export default function SearchContainer({
                   getFilteredStations(to).map((station, i) => (
                     <div
                       key={i}
-                      className="px-4 py-3 border-b-[2px] border-black/20 cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors"
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--bg-accent)")}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
+                      className="px-4 py-3 border-b-[2px] border-black/10 cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-all hover:bg-[var(--accent-soft,#FFE0EE)] hover:pl-5"
                       onClick={() => {
                         setTo(station.original);
                         setSuggestion(null);
@@ -395,7 +375,7 @@ export default function SearchContainer({
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-3 font-heading text-[10px] uppercase text-black/50">
+                  <div className="px-4 py-3 font-heading text-[10px] uppercase text-black/40">
                     NO MATCHES FOUND
                   </div>
                 )}
@@ -403,76 +383,21 @@ export default function SearchContainer({
             )}
           </div>
 
-          {/* ── 4. MODE TOGGLE ─────────────────────────────────────────────── */}
-          <div className="pt-2 relative z-10">
-            <div style={{ display: "flex", border: "3px solid #000", boxShadow: "3px 3px 0 #000", overflow: "hidden" }}>
-              <button
-                onClick={() => setRouteMode("fastest")}
-                style={{
-                  flex: 1,
-                  padding: "10px 8px",
-                  background: routeMode === "fastest" ? "#FACC00" : "#fff",
-                  border: "none",
-                  borderRight: "2px solid #000",
-                  cursor: "pointer",
-                  transition: "background 0.15s",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
-                <span style={{ fontSize: 14 }}>⚡</span>
-                <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 7, fontWeight: 900, letterSpacing: "0.15em", color: "#000" }}>FASTEST</span>
-                <span style={{ fontFamily: "var(--body-font),sans-serif", fontSize: 8, color: "rgba(0,0,0,0.45)" }}>Min time</span>
-              </button>
-              <button
-                onClick={() => setRouteMode("comfort")}
-                style={{
-                  flex: 1,
-                  padding: "10px 8px",
-                  background: routeMode === "comfort" ? "#5294FF" : "#fff",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "background 0.15s",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
-                <span style={{ fontSize: 14 }}>🛋️</span>
-                <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 7, fontWeight: 900, letterSpacing: "0.15em", color: routeMode === "comfort" ? "#fff" : "#000" }}>COMFORT</span>
-                <span style={{ fontFamily: "var(--body-font),sans-serif", fontSize: 8, color: routeMode === "comfort" ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.45)" }}>Fewest changes</span>
-              </button>
-            </div>
-          </div>
-
-          {/* ── 5. FIND ROUTE BUTTON ───────────────────────────────────────── */}
+          {/* ── 4. FIND ROUTE BUTTON ───────────────────────────────────────── */}
           <div className="pt-2 relative z-10">
             <button
               onClick={handleSearch}
               disabled={loading}
-              style={{
-                height: 56,
-                width: "100%",
-                background: routeMode === "comfort" ? "#5294FF" : "#FACC00",
-                border: "3px solid #000",
-                boxShadow: "4px 4px 0 #000",
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.75 : 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                transition: "transform 0.1s, box-shadow 0.1s",
-              }}
-              onMouseEnter={e => { if (!loading) { (e.currentTarget as HTMLElement).style.transform = "translate(-2px,-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = "6px 6px 0 #000"; } }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = "4px 4px 0 #000"; }}
+              className="h-[52px] w-full border-[3px] border-black shadow-neo flex items-center justify-center gap-2.5 transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-neo cursor-pointer"
+              style={{ backgroundColor: "var(--accent, #FF2E88)" }}
             >
-              <span style={{ fontSize: routeMode === "comfort" ? 16 : 14 }}>{routeMode === "comfort" ? "🛋️" : "⚡"}</span>
-              <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 11, letterSpacing: "0.15em", color: routeMode === "comfort" ? "#fff" : "#000", fontWeight: 900 }}>
-                {loading ? "SEARCHING..." : routeMode === "comfort" ? "FIND COMFORT ROUTE" : "▶ FIND ROUTE"}
+              {loading ? (
+                <div className="h-4 w-4 border-[3px] border-black border-t-transparent animate-spin" />
+              ) : (
+                <Train className="h-5 w-5 text-black" strokeWidth={3} />
+              )}
+              <span className="font-heading text-[11px] tracking-[0.15em] font-black uppercase text-black">
+                {loading ? "SEARCHING..." : "FIND ROUTE"}
               </span>
             </button>
           </div>
@@ -522,22 +447,22 @@ export default function SearchContainer({
           <FareBreakdown stopsCount={routeResult.path?.length || 1} />
 
           {/* HEADER CARD */}
-          <div style={{ background: "#fff", border: "3px solid #000", boxShadow: "6px 6px 0 #000", overflow: "hidden" }}>
-            <div style={{ backgroundColor: "var(--accent, #FF2E88)", borderBottom: "3px solid #000", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontFamily:"var(--heading-font),monospace", fontSize: 8, color: "#000", fontWeight: 900, letterSpacing: "0.15em" }}>
+          <div className="bg-white border-[3px] border-black shadow-[6px_6px_0_#000] overflow-hidden">
+            <div className="bg-[var(--accent,#FF2E88)] border-b-[3px] border-black px-3 py-2 flex justify-between items-center">
+              <span className="font-heading text-[8px] text-black font-black tracking-[0.15em] uppercase">
                 RESULT // ROUTE_CALCULATED
               </span>
-              <div style={{ height: 8, width: 8, background: "#000", borderRadius: "50%", animation: "pulse 2s infinite" }} />
+              <div className="h-2 w-2 bg-black rounded-full animate-pulse" />
             </div>
 
             <div className="p-6 space-y-4">
               {/* FROM → TO summary */}
               <div className="flex items-center gap-3 flex-wrap">
-                <span style={{ background:"#fff", border:"3px solid #000", padding:"6px 12px", fontFamily:"var(--heading-font),monospace", fontSize:10, fontWeight:900, boxShadow:"4px 4px 0 #000" }}>
+                <span className="bg-white border-[3px] border-black px-3 py-1.5 font-heading text-[10px] font-black shadow-[4px_4px_0_#000] uppercase">
                   {from}
                 </span>
                 <ArrowRight size={18} strokeWidth={3} />
-                <span style={{ background:"#fff", border:"3px solid #000", padding:"6px 12px", fontFamily:"var(--heading-font),monospace", fontSize:10, fontWeight:900, boxShadow:"4px 4px 0 #000" }}>
+                <span className="bg-white border-[3px] border-black px-3 py-1.5 font-heading text-[10px] font-black shadow-[4px_4px_0_#000] uppercase">
                   {to}
                 </span>
               </div>
@@ -549,15 +474,12 @@ export default function SearchContainer({
                   { label: "STOPS", val: routeResult.path?.length || 0, icon: MapPin, color: "#5294FF" },
                   { label: "LINES", val: ((routeResult.line1?.length || 0) + (routeResult.line2?.length || 0)) || 1, icon: Train, color: "#D4FF00" }
                 ].map((stat, i) => (
-                  <div key={i} style={{
-                    background: "#fff", border: "3px solid #000", boxShadow: "3px 3px 0 #000",
-                    padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
-                  }}>
-                    <div style={{ backgroundColor: stat.color, border: "2px solid #000", padding: 4, marginBottom: 4 }}>
+                  <div key={i} className="bg-white border-[3px] border-black shadow-[3px_3px_0_#000] py-2.5 px-1 flex flex-col items-center justify-center">
+                    <div className="border-2 border-black p-1 mb-1" style={{ backgroundColor: stat.color }}>
                       <stat.icon size={12} strokeWidth={3} />
                     </div>
-                    <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 6, opacity: 0.45 }}>{stat.label}</span>
-                    <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 11, fontWeight: 900, marginTop: 2 }}>{stat.val}</span>
+                    <span className="font-heading text-[6px] opacity-45 uppercase tracking-widest">{stat.label}</span>
+                    <span className="font-heading text-[11px] font-black mt-0.5 uppercase tracking-widest">{stat.val}</span>
                   </div>
                 ))}
               </div>
@@ -593,11 +515,16 @@ export default function SearchContainer({
           </div>
 
           {/* FULL ROUTE PATH CARD */}
-          <div className="bg-white border-2 border-black shadow-neo relative overflow-hidden">
-            <div className="h-8 bg-black flex items-center px-3 justify-between">
+          <div className="bg-white border-[3px] border-black shadow-neo relative overflow-hidden">
+            <div className="h-9 bg-black flex items-center px-3 justify-between">
               <span className="font-heading text-[8px] text-white tracking-widest">
                 TRAJECTORY // STATION_PATH
               </span>
+              <div className="flex gap-1">
+                <div className="h-2 w-2 bg-white/20" />
+                <div className="h-2 w-2 bg-white/40" />
+                <div className="h-2 w-2 bg-[var(--accent,#FF2E88)]" />
+              </div>
             </div>
 
             <div className="p-4 sm:p-6">
@@ -705,8 +632,8 @@ export default function SearchContainer({
                               </span>
                             )}
                             {isInterchange && (
-                              <span className="font-heading text-[7px] bg-brutal-yellow border border-black px-1.5 py-0.5 uppercase tracking-wider">
-                                ⇄ INTERCHANGE
+                              <span className="font-heading text-[7px] bg-brutal-yellow border border-black px-1.5 py-0.5 uppercase tracking-wider flex items-center gap-1">
+                                <ArrowRightLeft className="h-2 w-2" /> INTERCHANGE
                               </span>
                             )}
                             {(isFirst || isInterchange) && (
@@ -719,7 +646,7 @@ export default function SearchContainer({
                             )}
                             {isInterchange && routeResult.line2?.[0] && (
                               <span
-                                className="font-heading text-[7px] border border-black px-1.5 py-0.5 uppercase tracking-wider text-white"
+                                className="font-heading text-[7px] border border-black px-1.5 py-0.5 uppercase tracking-wider text-white flex items-center gap-1"
                                 style={{
                                   backgroundColor: (
                                     LINE_COLORS[routeResult.line2[0]] ||
@@ -727,7 +654,7 @@ export default function SearchContainer({
                                   ).accent,
                                 }}
                               >
-                                → {routeResult.line2[0]} LINE
+                                <ArrowRight className="h-2 w-2 text-white" /> {routeResult.line2[0]} LINE
                               </span>
                             )}
                           </div>
@@ -749,7 +676,6 @@ export default function SearchContainer({
 
                           {/* ── INTERCHANGE: full step-by-step guidance ── */}
                           {isInterchange && (() => {
-                            const seg0 = getBoardingInfo(0);
                             const seg1 = getBoardingInfo(1);
                             const nextLine = routeResult.line2?.[0];
                             return (
@@ -758,8 +684,8 @@ export default function SearchContainer({
                                   ↑ Exit {titleCase(currentLine)} Line
                                 </p>
                                 {nextLine && (
-                                  <p className="font-heading text-[7px] uppercase tracking-wider text-black font-black">
-                                    Follow signs → {titleCase(nextLine)} Line
+                                  <p className="font-heading text-[7px] uppercase tracking-wider text-black font-black flex items-center gap-1">
+                                    Follow signs <ArrowRight className="h-2 w-2" /> {titleCase(nextLine)} Line
                                   </p>
                                 )}
                                 <p className="font-heading text-[7px] uppercase tracking-wider text-black/70">
@@ -793,9 +719,9 @@ export default function SearchContainer({
 
             {/* Direction info footer */}
             {routeResult.lineEnds && routeResult.lineEnds.length > 0 && (
-              <div className="border-t-2 border-black bg-gray-50 px-6 py-3">
-                <p className="font-heading text-[8px] uppercase tracking-widest text-black/60">
-                  BOARD TOWARDS →{" "}
+              <div className="border-t-[3px] border-black bg-[#FAFAF5] px-6 py-3">
+                <p className="font-heading text-[8px] uppercase tracking-widest text-black/60 flex items-center gap-2">
+                  BOARD TOWARDS <ArrowRight className="h-2.5 w-2.5 text-black" />{" "}
                   <span className="text-black font-bold">
                     {titleCase(routeResult.lineEnds.join(" / "))}
                   </span>
@@ -808,11 +734,12 @@ export default function SearchContainer({
           <div className="mt-4">
             <Suspense fallback={
               <div className="border-[3px] border-black shadow-neo h-[380px] bg-[#f0ede8] flex flex-col">
-                <div className="h-8 bg-black flex items-center px-3">
+                <div className="h-9 bg-black flex items-center px-3 justify-between">
                   <span className="font-heading text-[8px] text-white tracking-widest">SYSTEM_MAP // LOADING...</span>
+                  <div className="h-2 w-2 bg-[var(--accent,#FF2E88)] animate-pulse" />
                 </div>
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="h-3 w-3 bg-black animate-ping" />
+                  <div className="h-4 w-4 border-[3px] border-black border-t-transparent animate-spin" />
                 </div>
               </div>
             }>

@@ -11,8 +11,8 @@ import type { User } from "@supabase/supabase-js";
 
 // ─── DB Row → CommunityRoute mapper ──────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapDbRow(row: any, index: number, userId: string | undefined): CommunityRoute {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+function mapDbRow(row: any, index: number, _userId: string | undefined): CommunityRoute {
   const routeArr: string[] = Array.isArray(row.full_route) ? row.full_route : [];
   const routeStr =
     routeArr.length > 0
@@ -122,8 +122,8 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setRoutes((data ?? []).map((row: any, i: number) => mapDbRow(row, i, user?.id)));
-      } catch (error) {
+        setRoutes((data ?? []).map((row: Record<string, unknown>, i: number) => mapDbRow(row, i, user?.id)));
+      } catch (error: unknown) {
         console.error("fetchSuggestions error:", error);
         setFetchError("Failed to load community routes.");
       } finally {

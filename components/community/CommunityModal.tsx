@@ -1,25 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Lightbulb, X } from "lucide-react";
+import { Lightbulb, X, ArrowRight } from "lucide-react";
 import { CommunityRoute } from "./CommunityCard";
+import React from "react";
 
 interface CommunityDetailModalProps {
   route: CommunityRoute;
   onClose: () => void;
 }
 
+/**
+ * Renders a string with "→" replaced by the ArrowRight icon.
+ */
+function RenderTitle({ title }: { title: string }) {
+  const parts = title.split("→");
+  return (
+    <span className="flex items-center gap-2 flex-wrap">
+      {parts.map((p, i) => (
+        <React.Fragment key={i}>
+          {p.trim()}
+          {i < parts.length - 1 && <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 inline-block" strokeWidth={3} />}
+        </React.Fragment>
+      ))}
+    </span>
+  );
+}
+
 export default function CommunityDetailModal({ route, onClose }: CommunityDetailModalProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    setIsAnimating(true);
+    // Run animation state update after paint
+    const raf = requestAnimationFrame(() => {
+      setIsAnimating(true);
+    });
 
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", handleKey);
+    };
   }, [onClose]);
 
   // Parse route steps from the route string (split by →)
@@ -66,13 +90,14 @@ export default function CommunityDetailModal({ route, onClose }: CommunityDetail
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-black leading-tight">
-              {route.title}
+              <RenderTitle title={route.title} />
             </h2>
           </div>
 
           {/* AUTHOR */}
           <div className="flex items-center gap-3 border-[3px] border-black p-3 bg-white shadow-[2px_2px_0px_#000]">
             {route.authorAvatar ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img src={route.authorAvatar} alt={route.author ?? "User"} className="h-10 w-10 shrink-0 border-[3px] border-black object-cover" />
             ) : (
               <div className={`h-10 w-10 shrink-0 ${route.accentColor ?? "bg-brutal-lavender"} border-[3px] border-black flex items-center justify-center`}>

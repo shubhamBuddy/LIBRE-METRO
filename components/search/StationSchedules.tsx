@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Clock, ArrowRight, Info, AlertTriangle } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface ScheduleItem {
   route: string;
@@ -34,7 +34,7 @@ export default function StationSchedule({ stationName, className = "" }: Station
         } else {
           setError(data.message || "Failed to load schedule");
         }
-      } catch (err) {
+      } catch {
         setError("Connection error");
       } finally {
         setLoading(false);

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as LMap, Polyline, CircleMarker } from "leaflet";
-import { METRO_LINES, loadStopCoords, type StopCoord, type MetroLine } from "@/lib/metro-lines";
+import { METRO_LINES, loadStopCoords, type StopCoord } from "@/lib/metro-lines";
+import { ArrowRight } from "lucide-react";
 
 // ── Interchange stations (multi-line hubs)
 const INTERCHANGE_NAMES = new Set([
@@ -232,7 +233,7 @@ export default function MapView({ highlightedPath = [], activeLine, className = 
         <div className="mt-2 bg-black text-white border-[3px] border-black px-4 py-2 flex items-center gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]">
           <div className="h-3 w-3 shrink-0 border-2 border-white" style={{ backgroundColor: METRO_LINES.find(l => l.id === activeLine)?.color ?? "#FDD835" }} />
           <span className="font-heading text-[9px] uppercase tracking-widest font-black">
-            {highlightedPath[0]} → {highlightedPath[highlightedPath.length - 1]}
+            {highlightedPath[0]} <ArrowRight className="h-2.5 w-2.5 inline-block mx-1" /> {highlightedPath[highlightedPath.length - 1]}
           </span>
           <span className="ml-auto font-numbers text-[9px] text-white/50 font-black">
             {highlightedPath.length} STOPS

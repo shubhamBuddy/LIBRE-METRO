@@ -117,7 +117,6 @@ export const STOPS_TO_BACKEND_MAP: Record<string, string> = {
   "Jafrabad": "Jaffrabad",
   "Janak Puri East": "Janakpuri East",
   "Janak Puri West": "Janakpuri West",
-  "Jasola Vihar Shaheen Bagh": "Jasola Apollo",
   "Jawahar Lal Nehru Stadium": "Jawaharlal Nehru Stadium",
   "Jorbagh": "Jor Bagh",
   "Major Mohit Sharma Rajender Nagar": "Major Mohit Sharma",
@@ -128,7 +127,7 @@ export const STOPS_TO_BACKEND_MAP: Record<string, string> = {
   "Sarai Kale Khan - Nizamuddin": "Hazrat Nizamuddin",
   "ESI Basai Darapur": "ESI Hospital",
   "IGI Airport": "Airport",
-  "Terminal 1- IGI Airport": "Airport",
+  "Terminal 1- IGI Airport": "Terminal 1 IGI Airport",
   "Maharaja Surajmal Stadium": "Surajmal Stadium",
   "RK Ashram Marg": "Ramakrishna Ashram Marg",
   "RK Puram": "Sir Vishweshwaraiah Moti Bagh",
@@ -136,23 +135,9 @@ export const STOPS_TO_BACKEND_MAP: Record<string, string> = {
   "Sadar Bazar Contonment": "Delhi Cantonment",
   "Vasant Vihar": "Sir Vishweshwaraiah Moti Bagh",
 
-  // Hindi → English (backend uses Hindi keys in JSON, but graph nodes are Hindi values = English)
-  "IIT": "आईआईटी दिल्ली",
-  "Chirag Delhi": "चिराग दिल्ली",
-  "Greater Kailash": "ग्रेटर कैलाश",
-  "Nehru Enclave": "नेहरू एन्क्लेव",
-  "Panchsheel Park": "पंचशील पार्क",
-  "Palam": "पालम",
-  "Munirka": "मुनिरका",
-  "Shankar Vihar": "शंकर विहार",
-  "Sukhdev Vihar": "सुखदेव विहार",
-  "Okhla Bird Sanctuary": "ओखला पक्षी अभयारण्य",
-  "Okhla NSIC": "ओखला एन एस आई सी",
-  "Okhla Vihar": "ओखला विहार",
-  "Kalindi Kunj": "कालिन्दी कुंज",
-  "Jamia Millia Islamia": "जामिया मिलिया इस्लामिया",
-  "Dabri Mor - Janakpuri South": "डाबरी मोर",
-  "Dashrath Puri": "दशरथ पुरी",
+  // Magenta line stops.txt → backend name translations (English only)
+  "IIT": "IIT Delhi",
+  "Dabri Mor - Janakpuri South": "Dabri Mor",
 };
 
 export interface MetroStationListResponse {
@@ -278,7 +263,8 @@ export class MetroAPI {
    * This filters from the full station list instead.
    * @deprecated Use getAllStations() instead.
    */
-  async getStationsByLine(line: MetroLine | string): Promise<MetroStationListResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getStationsByLine(_line: MetroLine | string): Promise<MetroStationListResponse> {
     try {
       const allStations = await this.getAllStations();
       // Since backend doesn't support per-line queries, return all stations
