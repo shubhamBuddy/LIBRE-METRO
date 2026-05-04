@@ -117,44 +117,38 @@ export default function FareBreakdown({ stopsCount, from, to }: FareBreakdownPro
             </span>
           </div>
         </div>
+      </div>
       {/* WHATSAPP TICKET CTA */}
-      {from && to && (() => {
-        const msg = encodeURIComponent(
-          `Hi! I want to buy a Delhi Metro ticket from ${from} to ${to}.`
-        );
-        // DMRC official WhatsApp number
-        const waUrl = `https://wa.me/917065278000?text=${msg}`;
-        return (
-          <div className="border-t-[3px] border-black">
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between gap-3 px-4 md:px-5 py-4 bg-[#25D366] hover:bg-[#1ebe59] active:bg-[#17a34a] transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="border-[3px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  <MessageCircle className="h-4 w-4 text-[#25D366]" strokeWidth={3} />
-                </div>
-                <div>
-                  <p className="font-heading text-[10px] font-black uppercase tracking-widest text-black">
-                    Buy Ticket via WhatsApp
-                  </p>
-                  <p className="font-heading text-[8px] uppercase tracking-widest text-black/70 mt-0.5">
-                    Opens DMRC official bot → +91 70652 78000
-                  </p>
-                </div>
+      {from && to ? (
+        <div className="border-t-[3px] border-black">
+          <a
+            href={`https://wa.me/917065278000?text=${encodeURIComponent(`Hi! I want to buy a Delhi Metro ticket from ${from} to ${to}.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between gap-3 px-4 md:px-5 py-4 bg-[#25D366] hover:bg-[#1ebe59] active:bg-[#17a34a] transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="border-[3px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <MessageCircle className="h-4 w-4 text-[#25D366]" strokeWidth={3} />
               </div>
-              <ExternalLink className="h-4 w-4 text-black shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" strokeWidth={3} />
-            </a>
-            <div className="px-4 py-2 bg-black/5 border-t-2 border-black/10">
-              <p className="font-heading text-[7px] uppercase tracking-widest text-black/50">
-                ⚠ Ticket issued by DMRC via WhatsApp. Libre Metro is not affiliated with DMRC.
-              </p>
+              <div>
+                <p className="font-heading text-[10px] font-black uppercase tracking-widest text-black">
+                  Buy Ticket via WhatsApp
+                </p>
+                <p className="font-heading text-[8px] uppercase tracking-widest text-black/70 mt-0.5">
+                  Opens DMRC official bot → +91 70652 78000
+                </p>
+              </div>
             </div>
+            <ExternalLink className="h-4 w-4 text-black shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" strokeWidth={3} />
+          </a>
+          <div className="px-4 py-2 bg-black/5 border-t-2 border-black/10">
+            <p className="font-heading text-[7px] uppercase tracking-widest text-black/50">
+              [!] Ticket issued by DMRC via WhatsApp. Libre Metro is not affiliated with DMRC.
+            </p>
           </div>
-        );
-      })()}
+        </div>
+      ) : null}
     </div>
   );
 }
