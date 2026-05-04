@@ -444,7 +444,7 @@ export default function SearchContainer({
           className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-4"
         >
           {/* FARE BREAKDOWN */}
-          <FareBreakdown stopsCount={routeResult.path?.length || 1} />
+          <FareBreakdown stopsCount={routeResult.path?.length || 1} from={from} to={to} />
 
           {/* HEADER CARD */}
           <div className="bg-white border-[3px] border-black shadow-[6px_6px_0_#000] overflow-hidden">
